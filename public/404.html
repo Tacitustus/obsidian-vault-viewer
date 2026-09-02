@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>リダイレクト中...</title>
+    <script>
+      // GitHub Pages SPA リダイレクトハック
+      // GitHub Pages は SPA のクライアントサイドルーティングに対応していないため、
+      // 404.html を利用してリダイレクトを行う
+      // 参考: https://github.com/rafgraph/spa-github-pages
+      const segmentCount = 1; // リポジトリ名の階層数（user.github.io の場合は 0）
+      const location = window.location;
+      location.replace(
+        location.protocol +
+          '//' +
+          location.hostname +
+          (location.port ? ':' + location.port : '') +
+          location.pathname
+            .split('/')
+            .slice(0, 1 + segmentCount)
+            .join('/') +
+          '/?/' +
+          location.pathname
+            .slice(1)
+            .split('/')
+            .slice(segmentCount)
+            .join('/')
+            .replace(/&/g, '~and~') +
+          (location.search ? '&' + location.search.slice(1).replace(/&/g, '~and~') : '') +
+          location.hash
+      );
+    </script>
+  </head>
+  <body>
+    リダイレクト中...
+  </body>
+</html>

@@ -1,0 +1,48 @@
+/* Google Fonts: Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* グローバルスタイル */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* デフォルトのフォント設定 */
+  html {
+    font-family:
+      'Inter',
+      system-ui,
+      -apple-system,
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* スムーズスクロール */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* ダークモード時の背景色トランジション */
+  body {
+    @apply transition-colors duration-300;
+  }
+}
+
+@layer components {
+  /* グラスモーフィズム共通スタイル */
+  .glass {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg;
+  }
+
+  .glass-dark {
+    @apply dark:bg-gray-900/30 dark:backdrop-blur-lg dark:border-gray-700/30;
+  }
+}
+
+@layer utilities {
+  /* テキストグラデーション */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-secondary-500;
+  }
+}
