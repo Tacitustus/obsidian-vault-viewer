@@ -38,6 +38,92 @@
   .glass-dark {
     @apply dark:bg-gray-900/30 dark:backdrop-blur-lg dark:border-gray-700/30;
   }
+
+  /* ============================================================
+     Markdown 本文のタイポグラフィスタイル（prose-custom）
+     長文の可読性を重視した設計
+     ============================================================ */
+  .prose-custom {
+    @apply text-gray-800 dark:text-gray-200 leading-relaxed;
+    max-width: 72ch;
+  }
+
+  .prose-custom h1 {
+    @apply text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4;
+  }
+
+  .prose-custom h2 {
+    @apply text-xl font-semibold text-gray-900 dark:text-white mt-7 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700;
+  }
+
+  .prose-custom h3 {
+    @apply text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-2;
+  }
+
+  .prose-custom h4 {
+    @apply text-base font-semibold text-gray-900 dark:text-white mt-5 mb-2;
+  }
+
+  .prose-custom h5,
+  .prose-custom h6 {
+    @apply text-sm font-semibold text-gray-700 dark:text-gray-300 mt-4 mb-1;
+  }
+
+  .prose-custom p {
+    @apply my-3 leading-7;
+  }
+
+  .prose-custom ul {
+    @apply my-3 pl-6 list-disc;
+  }
+
+  .prose-custom ol {
+    @apply my-3 pl-6 list-decimal;
+  }
+
+  .prose-custom li {
+    @apply my-1 leading-7;
+  }
+
+  .prose-custom li > ul,
+  .prose-custom li > ol {
+    @apply my-1;
+  }
+
+  .prose-custom strong {
+    @apply font-semibold text-gray-900 dark:text-white;
+  }
+
+  .prose-custom em {
+    @apply italic;
+  }
+
+  .prose-custom del {
+    @apply line-through text-gray-500 dark:text-gray-400;
+  }
+
+  /* wikilink: 解決済みリンク */
+  .wiki-link-resolved {
+    @apply text-primary-600 dark:text-primary-400 no-underline border-b border-primary-300 dark:border-primary-600 hover:border-primary-500 transition-colors duration-200;
+  }
+
+  /* wikilink: 未作成リンク（破線表示） */
+  .wiki-link-unresolved {
+    @apply text-gray-500 dark:text-gray-400 border-b border-dashed border-gray-400 dark:border-gray-500 cursor-help;
+  }
+
+  /* wiki-embed: ノート埋め込みブロック */
+  .wiki-embed {
+    @apply my-3 rounded-xl border border-primary-200/50 dark:border-primary-700/30 bg-primary-50/30 dark:bg-primary-900/10 overflow-hidden;
+  }
+
+  /* スクリーンリーダーのみに表示するテキスト */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
 }
 
 @layer utilities {

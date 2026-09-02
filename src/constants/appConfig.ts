@@ -3,11 +3,10 @@
  */
 
 /** アプリケーション名 */
-export const APP_NAME = 'React GitHub Pages Template';
+export const APP_NAME = 'Obsidian Vault Viewer';
 
 /** アプリケーションの説明 */
-export const APP_DESCRIPTION =
-  'AIエージェントが使い回すための、モダンで高品質なReactプロジェクトテンプレート';
+export const APP_DESCRIPTION = 'ObsidianのVaultをブラウザ上で閲覧するためのアプリケーション';
 
 /** レスポンシブブレークポイント（TailwindCSS のデフォルトに準拠） */
 export const BREAKPOINTS = {

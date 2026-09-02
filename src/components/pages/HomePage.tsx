@@ -1,120 +1,128 @@
-import { ArrowRight, Sparkles, Zap, Shield } from 'lucide-react';
-
-import { Button } from '@/components/atoms/Button';
-
 /**
- * @description 機能カードの型定義
- */
-interface FeatureCard {
-  /** アイコンコンポーネント */
-  icon: React.ReactNode;
-  /** カードのタイトル */
-  title: string;
-  /** カードの説明文 */
-  description: string;
-}
-
-/**
- * @description 表示する機能カードの一覧
- */
-const FEATURE_CARDS: FeatureCard[] = [
-  {
-    icon: <Zap className="w-6 h-6 text-yellow-500" />,
-    title: '高速開発',
-    description: 'Vite + React + TypeScript で高速なビルドとHMRを実現。開発体験を最大限に向上。',
-  },
-  {
-    icon: <Shield className="w-6 h-6 text-green-500" />,
-    title: '型安全',
-    description: 'TypeScript 厳格モードで型安全な開発。any 禁止ルールでバグを未然に防止。',
-  },
-  {
-    icon: <Sparkles className="w-6 h-6 text-purple-500" />,
-    title: 'モダンUI',
-    description: 'TailwindCSS でグラスモーフィズムやグラデーションを活用した美しいデザイン。',
-  },
-];
-
-/**
- * @description ホームページコンポーネント（Page）
- * ウェルカムページ。グラデーション背景とグラスモーフィズムカードを使用した
- * モダンなランディングページデザイン。
+ * @description 接続設定ページコンポーネント（Page）
+ * owner / repo / branch を入力して vault を開く画面。
+ * プライベートリポジトリ用の PAT 入力フィールドも備える。
  *
- * @returns {JSX.Element} ホームページ要素
+ * @returns {JSX.Element} 接続設定ページ要素
  *
  * @example
  * ```tsx
  * <Route path="/" element={<HomePage />} />
  * ```
  */
+
+import { useNavigate } from 'react-router-dom';
+import { BookOpen, Eye, FolderTree, Link2 } from 'lucide-react';
+
+import { ConnectionForm } from '@/components/molecules/ConnectionForm';
+import { ErrorMessage } from '@/components/atoms/ErrorMessage';
+import { useVaultConnection } from '@/hooks/useVaultConnection';
+
+import type { VaultConnection } from '@/types/Vault';
+
+/**
+ * @description 機能カードのデータ
+ */
+const FEATURE_CARDS = [
+  {
+    icon: <FolderTree className="w-6 h-6 text-yellow-500" />,
+    title: 'フォルダツリー',
+    description:
+      'リポジトリ内の全ファイルを階層構造で表示。折りたたみ・検索に対応。',
+  },
+  {
+    icon: <Link2 className="w-6 h-6 text-primary-500" />,
+    title: 'Wikilink 解決',
+    description:
+      '[[wikilink]] や ![[embed]] を自動解決し、ノート間をシームレスにナビゲート。',
+  },
+  {
+    icon: <Eye className="w-6 h-6 text-green-500" />,
+    title: 'Markdown レンダリング',
+    description:
+      'GFM（表、タスクリスト）やフロントマター、タグに対応した高品質なレンダリング。',
+  },
+];
+
 export const HomePage = () => {
+  // ナビゲーション
+  const navigate = useNavigate();
+
+  // vault 接続フック
+  const { connect, isLoading, error, clearError } = useVaultConnection();
+
+  // 接続ハンドラー
+  const handleConnect = async (connection: VaultConnection) => {
+    await connect(connection);
+
+    // 接続成功後に vault ページへ遷移する
+    // （エラーの場合は connect 内でエラーが設定されるため、ここには来ない）
+    void navigate('/vault');
+  };
+
   return (
-    <div className="relative">
-      {/* ヒーローセクション */}
-      <section className="relative overflow-hidden">
-        {/* 背景グラデーション */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 via-secondary-500/5 to-accent-500/10 dark:from-primary-950/50 dark:via-gray-950 dark:to-secondary-950/50" />
+    <div className="relative min-h-screen">
+      {/* 背景グラデーション */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-transparent to-secondary-500/5 dark:from-primary-950/30 dark:via-gray-950 dark:to-secondary-950/30" />
 
-        {/* 装飾用の背景ブロブ */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-400/20 dark:bg-primary-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-secondary-400/20 dark:bg-secondary-600/10 rounded-full blur-3xl" />
+      {/* 装飾用の背景ブロブ */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-primary-400/10 dark:bg-primary-600/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-secondary-400/10 dark:bg-secondary-600/5 rounded-full blur-3xl" />
 
-        {/* コンテンツ */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
-          <div className="text-center animate-fade-in">
-            {/* バッジ */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 text-sm font-medium mb-8">
-              <Sparkles className="w-4 h-4" />
-              React + Vite + TailwindCSS テンプレート
-            </div>
-
-            {/* メインタイトル */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">
-              <span className="text-gray-900 dark:text-white">Build </span>
-              <span className="text-gradient">Beautiful</span>
-              <br />
-              <span className="text-gray-900 dark:text-white">Web Apps</span>
-            </h1>
-
-            {/* サブタイトル */}
-            <p className="max-w-2xl mx-auto text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-10">
-              AIエージェントが使い回すための、モダンで高品質なReactプロジェクトテンプレート。 GitHub
-              Pages への自動デプロイに対応。
-            </p>
-
-            {/* CTAボタン群 */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button variant="primary" size="lg">
-                はじめる
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button variant="outline" size="lg">
-                ドキュメントを見る
-              </Button>
-            </div>
+      {/* メインコンテンツ */}
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        {/* ヘッダーセクション */}
+        <div className="text-center mb-12 animate-fade-in">
+          {/* ロゴアイコン */}
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-secondary-500 shadow-xl shadow-primary-500/25 mb-6">
+            <BookOpen className="w-8 h-8 text-white" />
           </div>
-        </div>
-      </section>
 
-      {/* 機能紹介セクション */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        {/* セクションタイトル */}
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            テンプレートの特徴
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            このテンプレートには、高品質なWebアプリケーション開発に必要な機能が揃っています。
+          {/* タイトル */}
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4">
+            <span className="text-gray-900 dark:text-white">Obsidian </span>
+            <span className="text-gradient">Vault Viewer</span>
+          </h1>
+
+          {/* サブタイトル */}
+          <p className="max-w-xl mx-auto text-base sm:text-lg text-gray-600 dark:text-gray-400">
+            GitHub 上の Obsidian vault をブラウザでそのまま閲覧。
+            wikilink・embed・画像をすべて解決して表示します。
           </p>
         </div>
 
-        {/* 機能カードグリッド */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        {/* 接続フォームカード */}
+        <div className="max-w-lg mx-auto mb-16 animate-slide-up">
+          <div className="p-6 sm:p-8 rounded-2xl bg-white/70 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-xl shadow-gray-200/20 dark:shadow-black/20">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+              Vault に接続
+            </h2>
+
+            {/* エラーメッセージ */}
+            {error && (
+              <ErrorMessage
+                message={error.message}
+                type="error"
+                onDismiss={clearError}
+                className="mb-4"
+              />
+            )}
+
+            {/* 接続フォーム */}
+            <ConnectionForm
+              onConnect={(conn) => void handleConnect(conn)}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
+
+        {/* 機能紹介セクション */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
           {FEATURE_CARDS.map((card, index) => (
             <div
               key={card.title}
-              className="group relative p-6 lg:p-8 rounded-2xl bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 hover:-translate-y-1 animate-slide-up"
-              style={{ animationDelay: `${index * 100}ms` }}
+              className="group p-6 rounded-2xl bg-white/50 dark:bg-gray-800/30 backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30 shadow-sm hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300 hover:-translate-y-1"
+              style={{ animationDelay: `${String(index * 100)}ms` }}
             >
               {/* アイコン */}
               <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700/50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
@@ -122,16 +130,18 @@ export const HomePage = () => {
               </div>
 
               {/* タイトル */}
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
                 {card.title}
               </h3>
 
               {/* 説明 */}
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{card.description}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                {card.description}
+              </p>
             </div>
           ))}
         </div>
-      </section>
+      </div>
     </div>
   );
 };

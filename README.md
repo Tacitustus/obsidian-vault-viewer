@@ -1,6 +1,6 @@
-# React GitHub Pages Template
+# Obsidian Vault Viewer
 
-AIエージェントがWebアプリケーションを開発する際に使い回すための、モダンで高品質なReactプロジェクトテンプレートです。
+ObsidianのVaultをブラウザ上で閲覧するためのアプリケーション
 
 ## 技術スタック
 

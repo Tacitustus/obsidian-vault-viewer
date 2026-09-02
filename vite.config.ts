@@ -6,7 +6,7 @@ import path from 'path';
 // リポジトリ名に合わせて変更してください
 // 例: https://username.github.io/repo-name/ → base: '/repo-name/'
 // ルートドメイン（username.github.io）の場合は '/' のままで OK
-const BASE_PATH = process.env.VITE_BASE_PATH || '/react-github-pages-template/';
+const BASE_PATH = process.env.VITE_BASE_PATH || '/obsidian-vault-viewer/';
 
 // https://vitejs.dev/config/
 export default defineConfig({
