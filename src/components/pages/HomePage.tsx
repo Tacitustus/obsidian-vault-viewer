@@ -17,6 +17,7 @@ import { BookOpen, Eye, FolderTree, Link2 } from 'lucide-react';
 import { ConnectionForm } from '@/components/molecules/ConnectionForm';
 import { ErrorMessage } from '@/components/atoms/ErrorMessage';
 import { useVaultConnection } from '@/hooks/useVaultConnection';
+import { useVaultStore } from '@/stores/vaultStore';
 
 import type { VaultConnection } from '@/types/Vault';
 
@@ -55,9 +56,13 @@ export const HomePage = () => {
   const handleConnect = async (connection: VaultConnection) => {
     await connect(connection);
 
-    // 接続成功後に vault ページへ遷移する
-    // （エラーの場合は connect 内でエラーが設定されるため、ここには来ない）
-    void navigate('/vault');
+    // 接続成功時のみ vault ページへ遷移する
+    // vaultStore.connect() はエラー時に throw せず store.error に格納するため、
+    // 接続後の isConnected 状態を確認して判定する
+    const { isConnected } = useVaultStore.getState();
+    if (isConnected) {
+      void navigate('/vault');
+    }
   };
 
   return (
