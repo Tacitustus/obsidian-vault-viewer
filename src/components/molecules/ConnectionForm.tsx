@@ -1,7 +1,7 @@
 /**
  * @description 接続設定フォームコンポーネント（Molecule）
  * owner / repo / branch / PAT を入力して vault に接続するフォーム。
- * PAT はブラウザのメモリ上（Zustand ストア）にのみ保持し、永続化・送信はしない。
+ * 入力情報はブラウザのローカルストレージに保存され、次回以降の入力を省略する。
  *
  * @param {{ onConnect: (connection: VaultConnection) => void; isLoading: boolean }} props
  * @returns {JSX.Element} 接続フォーム要素
@@ -31,11 +31,11 @@ export const ConnectionForm = ({
   onConnect,
   isLoading,
 }: ConnectionFormProps) => {
-  // フォームの入力値を管理する
-  const [owner, setOwner] = useState('');
-  const [repo, setRepo] = useState('');
-  const [branch, setBranch] = useState('main');
-  const [token, setToken] = useState('');
+  // フォームの入力値を管理する（初期値をローカルストレージから取得）
+  const [owner, setOwner] = useState(() => localStorage.getItem('vault_owner') || '');
+  const [repo, setRepo] = useState(() => localStorage.getItem('vault_repo') || '');
+  const [branch, setBranch] = useState(() => localStorage.getItem('vault_branch') || 'main');
+  const [token, setToken] = useState(() => localStorage.getItem('vault_token') || '');
 
   // フォームの送信を処理する
   const handleSubmit = (e: React.FormEvent) => {
@@ -53,6 +53,16 @@ export const ConnectionForm = ({
       branch: branch.trim(),
       token: token.trim() || undefined,
     };
+
+    // 入力値をローカルストレージに保存
+    localStorage.setItem('vault_owner', connection.owner);
+    localStorage.setItem('vault_repo', connection.repo);
+    localStorage.setItem('vault_branch', connection.branch);
+    if (connection.token) {
+      localStorage.setItem('vault_token', connection.token);
+    } else {
+      localStorage.removeItem('vault_token');
+    }
 
     onConnect(connection);
   };
@@ -117,7 +127,7 @@ export const ConnectionForm = ({
 
       {/* トークンに関する注意書き */}
       <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-        トークンはブラウザのメモリ上にのみ保持され、サーバーへの送信や永続化は行いません。
+        トークンなどの接続情報はブラウザのローカルストレージに保存され、サーバーへの送信は行われません。
         プライベートリポジトリの閲覧や API レート制限の緩和に使用します。
         fine-grained token で Contents: Read only の権限を推奨します。
       </p>
