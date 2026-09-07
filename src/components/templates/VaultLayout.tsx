@@ -56,7 +56,7 @@ export const VaultLayout = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950 transition-colors duration-300">
+    <div className="h-screen flex flex-col bg-white dark:bg-gray-950 transition-colors duration-300">
       {/* Vault 用ヘッダー */}
       <header className="sticky top-0 z-30 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50">
         <div className="flex items-center justify-between h-12 px-4">

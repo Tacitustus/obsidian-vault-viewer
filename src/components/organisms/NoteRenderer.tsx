@@ -17,6 +17,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
 
+import rehypeRaw from 'rehype-raw';
+
 import { remarkObsidianLink } from '@/lib/remark/remarkObsidianLink';
 import { useWikilinkResolver } from '@/hooks/useWikilinkResolver';
 import { useVaultStore } from '@/stores/vaultStore';
@@ -43,6 +45,7 @@ export const NoteRenderer = ({
 
   // remark プラグイン配列をメモ化する
   const remarkPlugins = useMemo(() => [remarkGfm, remarkObsidianLink], []);
+  const rehypePlugins = useMemo(() => [rehypeRaw], []);
 
   // カスタムコンポーネントマッピングを定義する
   const components: Components = useMemo(
@@ -328,7 +331,7 @@ export const NoteRenderer = ({
 
   return (
     <div className="note-renderer prose-custom">
-      <ReactMarkdown remarkPlugins={remarkPlugins} components={components}>
+      <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins} components={components}>
         {body}
       </ReactMarkdown>
     </div>

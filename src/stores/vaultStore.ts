@@ -12,6 +12,7 @@
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 import { fetchTree } from '@/lib/githubApi';
 import { buildNestedTree } from '@/lib/fileTreeParser';
@@ -48,80 +49,94 @@ interface VaultStore {
   clearError: () => void;
 }
 
-export const useVaultStore = create<VaultStore>((set) => ({
-  // 初期状態
-  connection: null,
-  flatTree: [],
-  nestedTree: [],
-  isLoading: false,
-  error: null,
-  isConnected: false,
-
-  // vault に接続し、ファイルツリーを取得する
-  connect: async (connection: VaultConnection) => {
-    // ローディング開始、エラーをクリアする
-    set({ isLoading: true, error: null });
-
-    try {
-      // GitHub API からファイルツリーを取得する
-      const treeResponse = await fetchTree(connection);
-
-      // blob（ファイル）のみを抽出する（ディレクトリは除外）
-      const blobItems = treeResponse.tree.filter(
-        (item) => item.type === 'blob',
-      );
-
-      // フラットなパス一覧をネスト構造に変換する
-      const nested = buildNestedTree(blobItems);
-
-      // ストアを更新する
-      set({
-        connection,
-        flatTree: blobItems,
-        nestedTree: nested,
-        isLoading: false,
-        isConnected: true,
-        error: null,
-      });
-    } catch (error: unknown) {
-      // エラーをストアに設定する
-      const apiError: ApiError =
-        typeof error === 'object' &&
-        error !== null &&
-        'type' in error &&
-        'message' in error
-          ? (error as ApiError)
-          : {
-              type: 'unknown',
-              message: '予期しないエラーが発生しました。',
-            };
-
-      set({
-        isLoading: false,
-        error: apiError,
-        isConnected: false,
-      });
-    }
-  },
-
-  // vault から切断し、状態をリセットする
-  disconnect: () => {
-    // キャッシュもクリアする
-    fileContentCache.clear();
-    fileTreeCache.clear();
-
-    set({
+export const useVaultStore = create<VaultStore>()(
+  persist(
+    (set) => ({
+      // 初期状態
       connection: null,
       flatTree: [],
       nestedTree: [],
       isLoading: false,
       error: null,
       isConnected: false,
-    });
-  },
 
-  // エラーをクリアする
-  clearError: () => {
-    set({ error: null });
-  },
-}));
+      // vault に接続し、ファイルツリーを取得する
+      connect: async (connection: VaultConnection) => {
+        // ローディング開始、エラーをクリアする
+        set({ isLoading: true, error: null });
+
+        try {
+          // GitHub API からファイルツリーを取得する
+          const treeResponse = await fetchTree(connection);
+
+          // blob（ファイル）のみを抽出する（ディレクトリは除外）
+          const blobItems = treeResponse.tree.filter(
+            (item) => item.type === 'blob',
+          );
+
+          // フラットなパス一覧をネスト構造に変換する
+          const nested = buildNestedTree(blobItems);
+
+          // ストアを更新する
+          set({
+            connection,
+            flatTree: blobItems,
+            nestedTree: nested,
+            isLoading: false,
+            isConnected: true,
+            error: null,
+          });
+        } catch (error: unknown) {
+          // エラーをストアに設定する
+          const apiError: ApiError =
+            typeof error === 'object' &&
+            error !== null &&
+            'type' in error &&
+            'message' in error
+              ? (error as ApiError)
+              : {
+                  type: 'unknown',
+                  message: '予期しないエラーが発生しました。',
+                };
+
+          set({
+            isLoading: false,
+            error: apiError,
+            isConnected: false,
+          });
+        }
+      },
+
+      // vault から切断し、状態をリセットする
+      disconnect: () => {
+        // キャッシュもクリアする
+        fileContentCache.clear();
+        fileTreeCache.clear();
+
+        set({
+          connection: null,
+          flatTree: [],
+          nestedTree: [],
+          isLoading: false,
+          error: null,
+          isConnected: false,
+        });
+      },
+
+      // エラーをクリアする
+      clearError: () => {
+        set({ error: null });
+      },
+    }),
+    {
+      name: 'vault-store',
+      partialize: (state) => ({
+        connection: state.connection,
+        flatTree: state.flatTree,
+        nestedTree: state.nestedTree,
+        isConnected: state.isConnected,
+      }),
+    }
+  )
+);
+
