@@ -9,6 +9,7 @@
 ### TypeScript
 - **TypeScript 厳格モード（`strict: true`）** を有効にすること
 - **`any` 型の使用は一切禁止**。`unknown` + 型ガードを用いること
+- **`// eslint-disable-next-line` によるエラーの握りつぶしは一切禁止**。必ず適切な型定義や実装の修正でエラーを解決すること
 - 関数はすべて **アロー関数** で定義する（`export const MyComponent = () => {}` 形式）
 
 ### コメント

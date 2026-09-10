@@ -129,7 +129,7 @@ export const fetchAllAnalytics = async (
       return [];
     }
 
-    return (data as NoteViewRecord[]) ?? [];
+    return data ?? [];
   } catch (error: unknown) {
     console.error('アナリティクスの取得に失敗しました:', error);
     return [];
@@ -150,7 +150,6 @@ export const fetchNoteAnalytics = async (
   if (!supabase) return null;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { data, error } = await supabase
       .from('note_views')
       .select('*')
@@ -159,7 +158,7 @@ export const fetchNoteAnalytics = async (
       .single();
 
     if (error) return null;
-    return data as NoteViewRecord;
+    return data;
   } catch {
     return null;
   }
@@ -191,7 +190,7 @@ export const fetchTopNotes = async (
       return [];
     }
 
-    return (data as NoteViewRecord[]) ?? [];
+    return data ?? [];
   } catch (error: unknown) {
     console.error('ランキングの取得に失敗しました:', error);
     return [];
@@ -216,7 +215,6 @@ export const saveAnalyticsFilter = async (
   try {
     if (filter.id) {
       // 既存レコードの更新
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data, error } = await supabase
         .from('analytics_filters')
         .update({
@@ -232,10 +230,9 @@ export const saveAnalyticsFilter = async (
         console.error('フィルタ設定の更新に失敗しました:', error);
         return null;
       }
-      return data as AnalyticsFilter;
+      return data;
     } else {
       // 新規レコードの挿入
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data, error } = await supabase
         .from('analytics_filters')
         .insert({
@@ -251,7 +248,7 @@ export const saveAnalyticsFilter = async (
         console.error('フィルタ設定の保存に失敗しました:', error);
         return null;
       }
-      return data as AnalyticsFilter;
+      return data;
     }
   } catch (error: unknown) {
     console.error('フィルタ設定の保存に失敗しました:', error);
@@ -282,7 +279,7 @@ export const fetchAnalyticsFilters = async (
       return [];
     }
 
-    return (data as AnalyticsFilter[]) ?? [];
+    return data ?? [];
   } catch (error: unknown) {
     console.error('フィルタ設定の取得に失敗しました:', error);
     return [];

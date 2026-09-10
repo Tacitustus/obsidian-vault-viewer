@@ -12,6 +12,7 @@ import type {
   GitHubTreeResponse,
   VaultConnection,
 } from '@/types/Vault';
+import { GitHubApiError as GitHubApiErrorClass } from '@/types/Vault';
 
 /** GitHub API のベース URL */
 const GITHUB_API_BASE = 'https://api.github.com';
@@ -108,18 +109,16 @@ export const fetchTree = async (
     });
   } catch {
     // ネットワークエラーの場合
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
-    throw {
+    throw new GitHubApiErrorClass({
       type: 'network',
       message:
         'ネットワークエラーが発生しました。インターネット接続を確認してください。',
-    } as ApiError;
+    });
   }
 
   // レスポンスが正常でない場合はエラーをスローする
   if (!response.ok) {
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
-    throw buildApiError(response);
+    throw new GitHubApiErrorClass(buildApiError(response));
   }
 
   // レスポンスを JSON としてパースする
@@ -164,18 +163,16 @@ export const fetchFileContent = async (
     });
   } catch {
     // ネットワークエラーの場合
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
-    throw {
+    throw new GitHubApiErrorClass({
       type: 'network',
       message:
         'ネットワークエラーが発生しました。インターネット接続を確認してください。',
-    } as ApiError;
+    });
   }
 
   // レスポンスが正常でない場合はエラーをスローする
   if (!response.ok) {
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
-    throw buildApiError(response);
+    throw new GitHubApiErrorClass(buildApiError(response));
   }
 
   // レスポンスを JSON としてパースする

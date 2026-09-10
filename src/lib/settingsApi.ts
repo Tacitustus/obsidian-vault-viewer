@@ -10,7 +10,6 @@ export const fetchVaultSettings = async (repoKey: string): Promise<VaultSettings
   if (!isSupabaseEnabled()) return null;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { data, error } = await supabase!
       .from('vault_settings')
       .select('*')
@@ -26,7 +25,7 @@ export const fetchVaultSettings = async (repoKey: string): Promise<VaultSettings
       return null;
     }
 
-    return data as VaultSettings;
+    return data;
   } catch (err) {
     console.error('Error fetching vault settings:', err);
     return null;

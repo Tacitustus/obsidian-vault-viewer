@@ -13,7 +13,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-
+import type { Database } from '@/types/supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // 環境変数から Supabase の接続情報を取得する
@@ -24,9 +24,9 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | und
  * @description Supabase クライアントインスタンス
  * 環境変数が未設定の場合は null（アナリティクス機能無効）
  */
-export const supabase: SupabaseClient | null =
+export const supabase: SupabaseClient<Database> | null =
   SUPABASE_URL && SUPABASE_ANON_KEY
-    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    ? createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY)
     : null;
 
 /**

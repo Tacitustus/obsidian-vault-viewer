@@ -219,6 +219,21 @@ export interface ApiError {
   status?: number;
 }
 
+/**
+ * @description 例外としてスローするためのエラークラス
+ */
+export class GitHubApiError extends Error implements ApiError {
+  public type: ApiErrorType;
+  public status?: number;
+
+  constructor(error: ApiError) {
+    super(error.message);
+    this.name = 'GitHubApiError';
+    this.type = error.type;
+    this.status = error.status;
+  }
+}
+
 // ============================================================
 // ストア状態
 // ============================================================

@@ -53,15 +53,10 @@ const LeafPaneRenderer = ({
   const setActivePane = useTabStore((state) => state.setActivePane);
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       className="flex flex-col h-full"
-      onClick={() => setActivePane(pane.id)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          setActivePane(pane.id);
-        }
-      }}
+      onPointerDownCapture={() => setActivePane(pane.id)}
+      onFocusCapture={() => setActivePane(pane.id)}
       role="tabpanel"
       tabIndex={-1}
     >
