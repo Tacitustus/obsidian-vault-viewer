@@ -1,6 +1,7 @@
 /**
  * @description YAML フロントマターのプロパティ表示パネルコンポーネント（Molecule）
  * ノートの YAML フロントマターを key-value 形式で表示する。
+ * tags フィールドの値はクリック可能なバッジとして表示し、タグ検索に連動する。
  *
  * @param {{ frontmatter: FrontmatterData; className?: string }} props
  * @returns {JSX.Element | null} フロントマターパネル要素（フロントマターが空の場合は null）
@@ -13,6 +14,9 @@
 
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
+
+import { Badge } from '@/components/atoms/Badge';
+import { useSearchStore } from '@/stores/searchStore';
 
 import type { FrontmatterData } from '@/types/Vault';
 
@@ -48,11 +52,38 @@ export const FrontmatterPanel = ({
   // フロントマターの展開/折り畳み状態を管理する
   const [isExpanded, setIsExpanded] = useState(true);
 
+  // タグ検索ストア
+  const selectTag = useSearchStore((state) => state.selectTag);
+
   // フロントマターが空の場合は何も表示しない
   const keys = Object.keys(frontmatter);
   if (keys.length === 0) {
     return null;
   }
+
+  /**
+   * @description タグ値をクリック可能なバッジとして表示するかどうか判定する
+   * @param {string} key - フロントマターのキー名
+   * @returns {boolean} tags フィールドの場合は true
+   */
+  const isTagField = (key: string): boolean => {
+    return key === 'tags' || key === 'tag';
+  };
+
+  /**
+   * @description タグ値を配列として取得する
+   * @param {unknown} value - フロントマターの値
+   * @returns {string[]} タグ名の配列
+   */
+  const getTagArray = (value: unknown): string[] => {
+    if (Array.isArray(value)) {
+      return value.map((v) => String(v)).filter((v) => v.trim());
+    }
+    if (typeof value === 'string') {
+      return value.split(',').map((v) => v.trim()).filter((v) => v);
+    }
+    return [];
+  };
 
   return (
     <div
@@ -84,10 +115,22 @@ export const FrontmatterPanel = ({
               <span className="flex-shrink-0 text-gray-500 dark:text-gray-400 font-medium min-w-[80px]">
                 {key}
               </span>
-              {/* 値 */}
-              <span className="text-gray-700 dark:text-gray-300 break-all">
-                {formatValue(frontmatter[key])}
-              </span>
+              {/* 値（tags フィールドはクリッカブルバッジ、それ以外は通常テキスト） */}
+              {isTagField(key) ? (
+                <div className="flex flex-wrap gap-1">
+                  {getTagArray(frontmatter[key]).map((tag) => (
+                    <Badge
+                      key={tag}
+                      tag={tag}
+                      onClick={() => selectTag(tag)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <span className="text-gray-700 dark:text-gray-300 break-all">
+                  {formatValue(frontmatter[key])}
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -95,3 +138,4 @@ export const FrontmatterPanel = ({
     </div>
   );
 };
+

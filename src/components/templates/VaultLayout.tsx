@@ -1,6 +1,6 @@
 /**
  * @description Vault 2ペインレイアウトコンポーネント（Template）
- * サイドバー（フォルダツリー）+ メインペイン（ノート表示）の2ペイン構成。
+ * サイドバー（フォルダツリー）+ メインペイン（タブ＋ペイン分割）の構成。
  * レスポンシブ対応: モバイルではハンバーガーメニューでサイドバーを切り替え。
  *
  * @returns {JSX.Element} Vault レイアウト要素
@@ -13,21 +13,21 @@
  * ```
  */
 
-import { useState } from 'react';
-import { Outlet, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Menu, Sun, Moon, LogOut, BookOpen } from 'lucide-react';
 
 import { Sidebar } from '@/components/organisms/Sidebar';
+import { PaneContainer } from '@/components/organisms/PaneContainer';
 import { Button } from '@/components/atoms/Button';
 import { useThemeStore } from '@/stores/themeStore';
 import { useVaultStore } from '@/stores/vaultStore';
+import { useTabStore } from '@/stores/tabStore';
+import { useAnalyticsStore } from '@/stores/analyticsStore';
 
 export const VaultLayout = () => {
   // モバイルでのサイドバー表示状態
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  // 選択中のファイルパス（URL から取得するのではなく、ここで管理する場合もある）
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
 
   // テーマ
   const { isDarkMode, toggleDarkMode } = useThemeStore();
@@ -36,16 +36,57 @@ export const VaultLayout = () => {
   const connection = useVaultStore((state) => state.connection);
   const disconnect = useVaultStore((state) => state.disconnect);
 
+  // タブストア
+  const openTab = useTabStore((state) => state.openTab);
+  const getActiveFilePath = useTabStore((state) => state.getActiveFilePath);
+
+  // アナリティクス
+  const loadAnalytics = useAnalyticsStore((state) => state.loadAnalytics);
+  const loadTopNotes = useAnalyticsStore((state) => state.loadTopNotes);
+  const isEnabled = useAnalyticsStore((state) => state.isEnabled);
+
   // ナビゲーション
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // ファイル選択時のハンドラー
+  // 初回ロード時にURLからノートを開く
+  useEffect(() => {
+    const pathMatch = location.pathname.match(/\/vault\/(.+)/);
+    if (pathMatch && pathMatch[1]) {
+      const notePath = pathMatch[1];
+      const filePath = `${notePath}.md`;
+      openTab(filePath);
+    }
+  // 初回ロード時のみ実行する（依存配列を空にはできないのでlocation.pathnameで制御）
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // アクティブタブのファイルパスが変わったらURLを同期する
+  useEffect(() => {
+    const activeFilePath = getActiveFilePath();
+    if (activeFilePath) {
+      const vaultPath = activeFilePath.replace(/\.(md|markdown)$/, '');
+      const targetPath = `/vault/${vaultPath}`;
+      if (location.pathname !== targetPath) {
+        void navigate(targetPath, { replace: true });
+      }
+    }
+  });
+
+  // vault 接続時にアナリティクスデータを読み込む
+  useEffect(() => {
+    if (connection && isEnabled) {
+      const repoKey = `${connection.owner}/${connection.repo}`;
+      void loadAnalytics(repoKey);
+      void loadTopNotes(repoKey, 10);
+    }
+  }, [connection, isEnabled, loadAnalytics, loadTopNotes]);
+
+  // ファイル選択時のハンドラー（タブを開く）
   const handleSelectFile = (path: string) => {
-    setSelectedPath(path);
-    // Markdown ファイルの場合は URL を更新する
+    // Markdown ファイルの場合はタブで開く
     if (path.endsWith('.md') || path.endsWith('.markdown')) {
-      const vaultPath = path.replace(/\.(md|markdown)$/, '');
-      void navigate(`/vault/${vaultPath}`);
+      openTab(path);
     }
   };
 
@@ -131,17 +172,17 @@ export const VaultLayout = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* サイドバー */}
         <Sidebar
-          selectedPath={selectedPath}
           onSelectFile={handleSelectFile}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
         />
 
-        {/* メインペイン */}
-        <main className="flex-1 overflow-y-auto">
-          <Outlet context={{ selectedPath, onSelectFile: handleSelectFile }} />
+        {/* メインペイン（タブ + ペイン分割） */}
+        <main className="flex-1 overflow-hidden">
+          <PaneContainer />
         </main>
       </div>
     </div>
   );
 };
+

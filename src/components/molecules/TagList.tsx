@@ -1,6 +1,7 @@
 /**
  * @description タグ一覧表示コンポーネント（Molecule）
  * ノートのフロントマターと本文から抽出されたタグをバッジ形式で一覧表示する。
+ * タグクリックでサイドバーのタグ検索機能を起動する。
  *
  * @param {{ tags: string[]; className?: string }} props
  * @returns {JSX.Element | null} タグ一覧要素（タグが空の場合は null）
@@ -14,6 +15,7 @@
 import { Tag } from 'lucide-react';
 
 import { Badge } from '@/components/atoms/Badge';
+import { useSearchStore } from '@/stores/searchStore';
 
 interface TagListProps {
   /** 表示するタグ配列 */
@@ -23,6 +25,14 @@ interface TagListProps {
 }
 
 export const TagList = ({ tags, className = '' }: TagListProps) => {
+  // 検索ストアからタグ選択アクションを取得する
+  const selectTag = useSearchStore((state) => state.selectTag);
+
+  // タグクリック時にサイドバーのタグ検索を起動する
+  const handleTagClick = (tag: string) => {
+    selectTag(tag);
+  };
+
   // タグが空の場合は何も表示しない
   if (tags.length === 0) {
     return null;
@@ -33,10 +43,11 @@ export const TagList = ({ tags, className = '' }: TagListProps) => {
       {/* タグアイコン */}
       <Tag className="w-4 h-4 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
 
-      {/* タグバッジ一覧 */}
+      {/* タグバッジ一覧（クリックでタグ検索を起動） */}
       {tags.map((tag) => (
-        <Badge key={tag} tag={tag} />
+        <Badge key={tag} tag={tag} onClick={handleTagClick} />
       ))}
     </div>
   );
 };
+
