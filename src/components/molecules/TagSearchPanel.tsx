@@ -12,12 +12,12 @@
  * ```
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Tag, FileText, ChevronRight } from 'lucide-react';
 
 import { Badge } from '@/components/atoms/Badge';
 import { useSearchStore } from '@/stores/searchStore';
-import { useTagIndex } from '@/hooks/useTagIndex';
+import { useVaultStore } from '@/stores/vaultStore';
 import { Spinner } from '@/components/atoms/Spinner';
 
 interface TagSearchPanelProps {
@@ -26,13 +26,26 @@ interface TagSearchPanelProps {
 }
 
 export const TagSearchPanel = ({ onSelectFile }: TagSearchPanelProps) => {
-  // 検索ストアからタグ選択状態を取得する
+  // 検索ストアからタグ選択状態とインデックス状態を取得する
   const selectedTag = useSearchStore((state) => state.selectedTag);
   const selectTag = useSearchStore((state) => state.selectTag);
   const clearSelectedTag = useSearchStore((state) => state.clearSelectedTag);
+  const allTags = useSearchStore((state) => state.allTags);
+  const tagCounts = useSearchStore((state) => state.tagCounts);
+  const getFilesByTag = useSearchStore((state) => state.getFilesByTag);
+  const isLoadingTags = useSearchStore((state) => state.isLoadingTags);
+  const buildTagIndex = useSearchStore((state) => state.buildTagIndex);
 
-  // タグインデックスを取得する
-  const { allTags, tagCounts, getFilesByTag, isLoading } = useTagIndex();
+  // Vaultストアから接続情報とファイルツリーを取得する
+  const connection = useVaultStore((state) => state.connection);
+  const flatTree = useVaultStore((state) => state.flatTree);
+
+  // パネルマウント時にタグインデックスを構築する
+  useEffect(() => {
+    if (connection) {
+      void buildTagIndex(connection, flatTree);
+    }
+  }, [connection, flatTree, buildTagIndex]);
 
   // タグフィルタクエリ
   const [tagFilter, setTagFilter] = useState('');
@@ -61,7 +74,7 @@ export const TagSearchPanel = ({ onSelectFile }: TagSearchPanelProps) => {
   };
 
   // ローディング中の表示
-  if (isLoading) {
+  if (isLoadingTags) {
     return (
       <div className="flex flex-col items-center justify-center py-8">
         <Spinner />

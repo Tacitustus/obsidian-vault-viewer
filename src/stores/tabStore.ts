@@ -295,31 +295,36 @@ export const useTabStore = create<TabStore>((set, get) => ({
   // タブを閉じる
   closeTab: (tabId: string, paneId: string) => {
     set((prev) => {
-      const updated = updatePaneInTree(prev.rootPane, paneId, (pane) => {
-        if (pane.type !== 'leaf') return pane;
+      // 閉じる対象のタブを取得しておく
+      const pane = findLeafPane(prev.rootPane, paneId);
+      const tabToClose = pane?.tabs.find((t) => t.id === tabId);
+      const closedFilePath = tabToClose?.filePath;
+
+      const updated = updatePaneInTree(prev.rootPane, paneId, (paneToUpdate) => {
+        if (paneToUpdate.type !== 'leaf') return paneToUpdate;
 
         // タブを除去する
-        const newTabs = pane.tabs.filter((t) => t.id !== tabId);
+        const newTabs = paneToUpdate.tabs.filter((t) => t.id !== tabId);
 
         // タブが全て閉じられた場合
         if (newTabs.length === 0) {
           // ルートペインの場合は空のペインを残す
           if (prev.rootPane.id === paneId) {
-            return { ...pane, tabs: [], activeTabId: null };
+            return { ...paneToUpdate, tabs: [], activeTabId: null };
           }
           // それ以外のペインは削除する
           return null;
         }
 
         // アクティブタブが閉じられた場合は隣のタブをアクティブにする
-        let newActiveTabId = pane.activeTabId;
-        if (pane.activeTabId === tabId) {
-          const closedIndex = pane.tabs.findIndex((t) => t.id === tabId);
+        let newActiveTabId = paneToUpdate.activeTabId;
+        if (paneToUpdate.activeTabId === tabId) {
+          const closedIndex = paneToUpdate.tabs.findIndex((t) => t.id === tabId);
           const newIndex = Math.min(closedIndex, newTabs.length - 1);
           newActiveTabId = newTabs[newIndex].id;
         }
 
-        return { ...pane, tabs: newTabs, activeTabId: newActiveTabId };
+        return { ...paneToUpdate, tabs: newTabs, activeTabId: newActiveTabId };
       });
 
       // ルートが null になった場合はフォールバック
@@ -337,6 +342,21 @@ export const useTabStore = create<TabStore>((set, get) => ({
         const firstLeaf = findFirstLeafPane(updated);
         if (firstLeaf) {
           newActivePaneId = firstLeaf.id;
+        }
+      }
+
+      // タブが閉じられた後、同じファイルが他のタブで開かれているか確認する
+      if (closedFilePath) {
+        const remainingTab = findTabByFilePath(updated, closedFilePath);
+        if (!remainingTab) {
+          // どのタブにも存在しなくなった場合、アナリティクスストアから閲覧状態をクリアする
+          // importを増やすのを避けるため、必要な場合のみ動的にインポート・実行するか、直接呼び出す
+          // Zustandのstoreはグローバルに状態を持つので、直接インポートして呼び出す
+          import('@/stores/analyticsStore').then(({ useAnalyticsStore }) => {
+            useAnalyticsStore.getState().clearSessionViewed(closedFilePath);
+          }).catch(() => {
+            // エラー時は何もしない
+          });
         }
       }
 

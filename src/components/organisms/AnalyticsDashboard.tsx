@@ -28,7 +28,7 @@ import { useAnalyticsStore } from '@/stores/analyticsStore';
 import { useVaultStore } from '@/stores/vaultStore';
 import { FolderSelector } from '@/components/molecules/FolderSelector';
 
-import type { AnalyticsFilter, FilterOperator } from '@/lib/analyticsApi';
+import type { AnalyticsFilter } from '@/lib/analyticsApi';
 import type { HeatMapNode } from '@/stores/analyticsStore';
 
 interface AnalyticsDashboardProps {
@@ -85,9 +85,7 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
   const [showFilterEditor, setShowFilterEditor] = useState(false);
 
   // フィルタ編集用の状態
-  const [editFilterName, setEditFilterName] = useState('');
   const [editFolderPaths, setEditFolderPaths] = useState<string[]>([]);
-  const [editOperator, setEditOperator] = useState<FilterOperator>('or');
 
   // リポジトリキーを取得する
   const repoKey = connection ? `${connection.owner}/${connection.repo}` : '';
@@ -128,18 +126,22 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
 
   // フィルタ保存ハンドラー
   const handleSaveFilter = async () => {
-    if (!editFilterName.trim() || editFolderPaths.length === 0) return;
+    if (editFolderPaths.length === 0) return;
+    
+    // 選択されたフォルダをカンマ区切りでフィルタ名にする
+    // （長すぎる場合は末尾を省略する）
+    const joinedNames = editFolderPaths.join(', ');
+    const filterName = joinedNames.length > 30 ? joinedNames.substring(0, 30) + '...' : joinedNames;
+
     const filter: AnalyticsFilter = {
       repo_key: repoKey,
-      filter_name: editFilterName,
+      filter_name: filterName,
       folder_paths: editFolderPaths,
-      operator: editOperator,
+      operator: 'or', // フォルダ選択のみとするため OR 固定
     };
     await saveFilter(filter);
     // フォーム初期化
-    setEditFilterName('');
     setEditFolderPaths([]);
-    setEditOperator('or');
     setShowFilterEditor(false);
   };
 
@@ -273,38 +275,6 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
               {/* フィルタエディター */}
               {showFilterEditor && (
                 <div className="p-2 bg-gray-50 dark:bg-gray-800/30 rounded-lg space-y-1.5 border border-gray-200/50 dark:border-gray-700/50">
-                  <input
-                    type="text"
-                    placeholder="フィルタ名"
-                    value={editFilterName}
-                    onChange={(e) => setEditFilterName(e.target.value)}
-                    className="w-full text-[10px] px-2 py-1 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:border-primary-500"
-                  />
-
-                  {/* 演算子の選択 */}
-                  <div className="flex gap-1">
-                    <button
-                      className={`flex-1 text-[10px] py-0.5 rounded ${
-                        editOperator === 'or'
-                          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
-                      }`}
-                      onClick={() => setEditOperator('or')}
-                    >
-                      OR (いずれか)
-                    </button>
-                    <button
-                      className={`flex-1 text-[10px] py-0.5 rounded ${
-                        editOperator === 'and'
-                          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
-                      }`}
-                      onClick={() => setEditOperator('and')}
-                    >
-                      AND (すべて)
-                    </button>
-                  </div>
-
                   {/* フォルダ選択 */}
                   <FolderSelector
                     folderPaths={folderPaths}
@@ -316,7 +286,7 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
                   <button
                     className="w-full text-[10px] py-1 rounded bg-primary-500 text-white hover:bg-primary-600 transition-colors disabled:opacity-50"
                     onClick={() => void handleSaveFilter()}
-                    disabled={!editFilterName.trim() || editFolderPaths.length === 0}
+                    disabled={editFolderPaths.length === 0}
                   >
                     保存
                   </button>

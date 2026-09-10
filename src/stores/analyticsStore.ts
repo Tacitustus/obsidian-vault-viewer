@@ -61,6 +61,8 @@ interface AnalyticsStore {
   isEnabled: boolean;
   /** メモリ内閲覧カウント（Supabase 未設定時のフォールバック） */
   memoryViewCounts: Map<string, number>;
+  /** 現在のセッションで閲覧済みのファイルパス一覧 */
+  sessionViewedNotes: Set<string>;
   /** ノートの閲覧を記録する */
   recordView: (repoKey: string, filePath: string) => Promise<void>;
   /** 全アナリティクスデータを取得する */
@@ -81,6 +83,8 @@ interface AnalyticsStore {
   setActiveFilter: (filter: AnalyticsFilter | null) => void;
   /** 最大閲覧回数を取得する */
   getMaxViewCount: () => number;
+  /** 特定ファイルのセッション閲覧状態をクリアする */
+  clearSessionViewed: (filePath: string) => void;
 }
 
 // デバウンス用の記録タイムスタンプ（React 18 StrictMode 等による二重カウント防止）
@@ -95,9 +99,15 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
   isLoading: false,
   isEnabled: isSupabaseEnabled(),
   memoryViewCounts: new Map(),
+  sessionViewedNotes: new Set(),
 
   // ノートの閲覧を記録する
   recordView: async (repoKey: string, filePath: string) => {
+    // 既にこのセッションで開かれている場合はカウントしない
+    if (get().sessionViewedNotes.has(filePath)) {
+      return;
+    }
+
     // 5秒以内の連続記録を防ぐ
     const now = Date.now();
     const lastRecord = lastRecordTimes.get(filePath) ?? 0;
@@ -105,6 +115,13 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
       return;
     }
     lastRecordTimes.set(filePath, now);
+
+    // セッションでの閲覧済みにマークする
+    set((prev) => {
+      const newSet = new Set(prev.sessionViewedNotes);
+      newSet.add(filePath);
+      return { sessionViewedNotes: newSet };
+    });
 
     if (get().isEnabled) {
       // Supabase に記録する
@@ -284,5 +301,14 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
   // フィルタを適用する
   setActiveFilter: (filter: AnalyticsFilter | null) => {
     set({ activeFilter: filter });
+  },
+
+  // 特定ファイルのセッション閲覧状態をクリアする
+  clearSessionViewed: (filePath: string) => {
+    set((prev) => {
+      const newSet = new Set(prev.sessionViewedNotes);
+      newSet.delete(filePath);
+      return { sessionViewedNotes: newSet };
+    });
   },
 }));
