@@ -178,12 +178,36 @@ CREATE INDEX IF NOT EXISTS idx_analytics_filters_repo_key ON analytics_filters(r
 4. 「Success. No rows returned.」と表示されれば完了です
 5. 左サイドバーの **「Table Editor」** で `note_views` と `analytics_filters` の2テーブルが作成されていることを確認
 
-### Step 5: 動作確認
+### Step 5: 動作確認（ローカル）
 
 1. `npm run dev` で開発サーバーを起動
 2. Vault を開いてノートを表示
 3. サイドバー下部の **「アナリティクス」** をクリックして展開
 4. ノートを閲覧した後、ランキングやヒートマップにデータが反映されることを確認
+
+### Step 6: GitHub Pages デプロイ時の設定
+
+ローカルの `.env` ファイルは Git にコミットされないため、GitHub Pages にデプロイされたアプリには環境変数が含まれません。
+デプロイ先でもアナリティクス機能を有効にするには、GitHub の **Repository Secrets** に環境変数を登録する必要があります。
+
+> **💡 仕組み**: Vite は `VITE_` プレフィックス付きの環境変数をビルド時にバンドルに埋め込みます。GitHub Actions のワークフロー（`.github/workflows/deploy.yml`）は、Repository Secrets から環境変数を読み取り、`npm run build` の実行時に渡すよう設定済みです。
+
+#### 設定手順
+
+1. GitHub で対象リポジトリのページを開く
+2. **Settings** タブをクリック
+3. 左サイドバーの **「Secrets and variables」** → **「Actions」** をクリック
+4. **「New repository secret」** ボタンをクリック
+5. 以下の2つのシークレットを登録する：
+
+| Name | Value |
+|------|-------|
+| `VITE_SUPABASE_URL` | Supabase の Project URL（例: `https://xxxxxxxx.supabase.co`） |
+| `VITE_SUPABASE_ANON_KEY` | Supabase の anon public key（`eyJhbG...` で始まる JWT） |
+
+6. 登録後、`main` ブランチに push するか、**Actions** タブからワークフローを手動実行すると、Supabase 接続情報がバンドルに含まれた状態でデプロイされます
+
+> ⚠️ **`anon` キーはフロントエンドに埋め込まれるため公開される前提のキーです。** Supabase の RLS（Row Level Security）により、テーブルレベルでアクセス制御されているため安全です。ただし `service_role` キーは絶対に Secrets に登録しないでください。
 
 ### アナリティクスのフィルタ設定
 
