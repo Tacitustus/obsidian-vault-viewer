@@ -26,6 +26,7 @@ export const useNoteContent = (filePath: string | null) => {
 
   // ノートの状態を管理する
   const [parsedNote, setParsedNote] = useState<ParsedNote | null>(null);
+  const [loadedFilePath, setLoadedFilePath] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
 
@@ -37,7 +38,7 @@ export const useNoteContent = (filePath: string | null) => {
       return;
     }
 
-    // ローディング開始
+    // ローディング開始（新しいファイルのパース結果が出るまではステートをリセットしないが loadedFilePath でガードする）
     setIsLoading(true);
     setError(null);
 
@@ -52,6 +53,7 @@ export const useNoteContent = (filePath: string | null) => {
       const note = parseNote(rawMarkdown);
 
       setParsedNote(note);
+      setLoadedFilePath(filePath);
     } catch (err: unknown) {
       // エラーを設定する
       const apiError: ApiError =
@@ -78,8 +80,9 @@ export const useNoteContent = (filePath: string | null) => {
   }, [loadNote]);
 
   return {
-    parsedNote,
-    isLoading,
+    // filePath が変更された直後は古い parsedNote を返さないようにする
+    parsedNote: loadedFilePath === filePath ? parsedNote : null,
+    isLoading: isLoading || (filePath !== null && loadedFilePath !== filePath),
     error,
     reload: loadNote,
   };

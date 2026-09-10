@@ -83,6 +83,9 @@ interface AnalyticsStore {
   getMaxViewCount: () => number;
 }
 
+// デバウンス用の記録タイムスタンプ（React 18 StrictMode 等による二重カウント防止）
+const lastRecordTimes = new Map<string, number>();
+
 export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
   // 初期状態
   analyticsMap: new Map(),
@@ -95,6 +98,14 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
 
   // ノートの閲覧を記録する
   recordView: async (repoKey: string, filePath: string) => {
+    // 5秒以内の連続記録を防ぐ
+    const now = Date.now();
+    const lastRecord = lastRecordTimes.get(filePath) ?? 0;
+    if (now - lastRecord < 5000) {
+      return;
+    }
+    lastRecordTimes.set(filePath, now);
+
     if (get().isEnabled) {
       // Supabase に記録する
       await recordNoteView(repoKey, filePath);
