@@ -93,6 +93,26 @@ export interface TreeNode {
 }
 
 // ============================================================
+// アプリケーション設定型（Supabase vault_settings）
+// ============================================================
+
+import type { PaneSnapshot } from '@/stores/tabStore';
+
+/**
+ * @description Vaultごとの共有設定（Supabaseの vault_settings テーブルに対応）
+ */
+export interface VaultSettings {
+  /** リポジトリキー（"owner/repo"） */
+  repo_key: string;
+  /** サイドバーで表示を許可するフォルダパスの配列（空の場合はすべて表示） */
+  sidebar_folders: string[];
+  /** 開いているタブ（ペイン構造全体）のJSONスナップショット */
+  opened_tabs: PaneSnapshot | null;
+  /** 最終更新日時 */
+  updated_at?: string;
+}
+
+// ============================================================
 // Vault 接続設定
 // ============================================================
 

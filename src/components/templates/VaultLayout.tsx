@@ -24,6 +24,8 @@ import { useThemeStore } from '@/stores/themeStore';
 import { useVaultStore } from '@/stores/vaultStore';
 import { useTabStore } from '@/stores/tabStore';
 import { useAnalyticsStore } from '@/stores/analyticsStore';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useRef } from 'react';
 
 export const VaultLayout = () => {
   // モバイルでのサイドバー表示状態
@@ -39,27 +41,61 @@ export const VaultLayout = () => {
   // タブストア
   const openTab = useTabStore((state) => state.openTab);
   const getActiveFilePath = useTabStore((state) => state.getActiveFilePath);
+  const rootPane = useTabStore((state) => state.rootPane);
+  const activePaneId = useTabStore((state) => state.activePaneId);
+  const restoreTree = useTabStore((state) => state.restoreTree);
 
   // アナリティクス
   const loadAnalytics = useAnalyticsStore((state) => state.loadAnalytics);
   const loadTopNotes = useAnalyticsStore((state) => state.loadTopNotes);
   const isEnabled = useAnalyticsStore((state) => state.isEnabled);
 
+  // 共通設定
+  const { loadSettings, isLoaded, openedTabs, saveOpenedTabs } = useSettingsStore();
+  const repoKey = connection ? `${connection.owner}/${connection.repo}` : '';
+
   // ナビゲーション
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 初回ロード時にURLからノートを開く
+  // 1. Vault 接続時に設定とアナリティクスデータを読み込む
   useEffect(() => {
-    const pathMatch = location.pathname.match(/\/vault\/(.+)/);
-    if (pathMatch && pathMatch[1]) {
-      const notePath = decodeURIComponent(pathMatch[1]);
-      const filePath = `${notePath}.md`;
-      openTab(filePath);
+    if (connection) {
+      if (isEnabled) {
+        void loadAnalytics(repoKey);
+        void loadTopNotes(repoKey, 10);
+      }
+      void loadSettings(repoKey);
     }
-  // 初回ロード時のみ実行する（依存配列を空にはできないのでlocation.pathnameで制御）
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connection, isEnabled, repoKey, loadAnalytics, loadTopNotes, loadSettings]);
+
+  // 2. 設定のロード完了時にタブを復元し、必要に応じてURLのノートを開く
+  const hasRestored = useRef(false);
+  useEffect(() => {
+    if (isLoaded && !hasRestored.current) {
+      hasRestored.current = true;
+
+      // サーバーからタブ状態の復元
+      if (openedTabs && openedTabs.rootPane && openedTabs.activePaneId) {
+        restoreTree(openedTabs.rootPane, openedTabs.activePaneId);
+      }
+
+      // URLに指定されたノートがあれば、さらにそれを開く（復元されたタブ群にマージされる）
+      const pathMatch = location.pathname.match(/\/vault\/(.+)/);
+      if (pathMatch && pathMatch[1]) {
+        const notePath = decodeURIComponent(pathMatch[1]);
+        const filePath = `${notePath}.md`;
+        openTab(filePath);
+      }
+    }
+  }, [isLoaded, openedTabs, restoreTree, openTab, location.pathname]);
+
+  // 3. ペインツリーの状態が変わったら自動保存する
+  useEffect(() => {
+    if (isLoaded && hasRestored.current && connection) {
+      saveOpenedTabs(repoKey, { rootPane, activePaneId });
+    }
+  }, [rootPane, activePaneId, isLoaded, connection, repoKey, saveOpenedTabs]);
 
   // アクティブタブのファイルパスが変わったらURLを同期する
   useEffect(() => {
@@ -72,15 +108,6 @@ export const VaultLayout = () => {
       }
     }
   });
-
-  // vault 接続時にアナリティクスデータを読み込む
-  useEffect(() => {
-    if (connection && isEnabled) {
-      const repoKey = `${connection.owner}/${connection.repo}`;
-      void loadAnalytics(repoKey);
-      void loadTopNotes(repoKey, 10);
-    }
-  }, [connection, isEnabled, loadAnalytics, loadTopNotes]);
 
   // ファイル選択時のハンドラー（タブを開く）
   const handleSelectFile = (path: string) => {

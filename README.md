@@ -169,6 +169,23 @@ CREATE POLICY "Allow anonymous update on analytics_filters"
 CREATE POLICY "Allow anonymous delete on analytics_filters"
   ON analytics_filters FOR DELETE USING (true);
 
+-- vault_settings テーブル: 共有設定（タブ状況、サイドバーフィルタ）を保存する
+CREATE TABLE IF NOT EXISTS vault_settings (
+  repo_key TEXT PRIMARY KEY,
+  sidebar_folders JSONB DEFAULT '[]',
+  opened_tabs JSONB DEFAULT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE vault_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow anonymous select on vault_settings"
+  ON vault_settings FOR SELECT USING (true);
+CREATE POLICY "Allow anonymous insert on vault_settings"
+  ON vault_settings FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow anonymous update on vault_settings"
+  ON vault_settings FOR UPDATE USING (true);
+
 -- インデックス
 CREATE INDEX IF NOT EXISTS idx_note_views_repo_key ON note_views(repo_key);
 CREATE INDEX IF NOT EXISTS idx_note_views_view_count ON note_views(view_count DESC);

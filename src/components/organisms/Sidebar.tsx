@@ -13,15 +13,18 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, X, FileText, AlignLeft, Tag } from 'lucide-react';
+import { Search, X, FileText, AlignLeft, Tag, Settings } from 'lucide-react';
 
 import { useFileTree } from '@/hooks/useFileTree';
 import { useSearchStore } from '@/stores/searchStore';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useVaultStore } from '@/stores/vaultStore';
 import { TreeNodeItem } from '@/components/molecules/TreeNodeItem';
 import { SearchResultItem } from '@/components/molecules/SearchResultItem';
 import { SearchOptions } from '@/components/molecules/SearchOptions';
 import { TagSearchPanel } from '@/components/molecules/TagSearchPanel';
 import { AnalyticsDashboard } from '@/components/organisms/AnalyticsDashboard';
+import { FolderSelector } from '@/components/molecules/FolderSelector';
 
 interface SidebarProps {
   /** ファイル選択時のコールバック */
@@ -45,8 +48,18 @@ export const Sidebar = ({
   const selectedTag = useSearchStore((state) => state.selectedTag);
   const setSearchFocused = useSearchStore((state) => state.setSearchFocused);
 
-  // 検索オプションの表示状態
+  // 設定ストアとVaultストア
+  const repoKey = useVaultStore((state) => {
+    const conn = state.connection;
+    return conn ? `${conn.owner}/${conn.repo}` : '';
+  });
+  const fullNestedTree = useVaultStore((state) => state.nestedTree);
+  const sidebarFolders = useSettingsStore((state) => state.sidebarFolders);
+  const setSidebarFolders = useSettingsStore((state) => state.setSidebarFolders);
+
+  // UI表示状態
   const [showSearchOptions, setShowSearchOptions] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   // 検索入力フィールドの ref
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -127,20 +140,64 @@ export const Sidebar = ({
         aria-label="ファイルツリーサイドバー"
       >
         {/* サイドバーヘッダー: 検索バー */}
-        <div className="p-3 border-b border-gray-200/50 dark:border-gray-700/50">
-          {/* モバイル用の閉じるボタン */}
-          <div className="flex items-center justify-between mb-2 lg:hidden">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        <div className="p-3 border-b border-gray-200/50 dark:border-gray-700/50 flex flex-col gap-2">
+          {/* ヘッダー領域 */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 hidden lg:inline-block">
               ファイルツリー
             </span>
-            <button
-              onClick={onClose}
-              className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="サイドバーを閉じる"
-            >
-              <X className="w-4 h-4 text-gray-500" />
-            </button>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400 lg:hidden">
+              ファイルツリー
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowSettings((prev) => !prev)}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  showSettings
+                    ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500'
+                }`}
+                aria-label="サイドバー設定"
+                title="表示フォルダの絞り込み"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+              {/* モバイル用の閉じるボタン */}
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors lg:hidden text-gray-500"
+                aria-label="サイドバーを閉じる"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
+
+          {/* フォルダ絞り込みパネル */}
+          {showSettings && (
+            <div className="p-2 bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-gray-200/50 dark:border-gray-700/50 mb-1">
+              <div className="text-[10px] font-medium text-gray-500 mb-1 px-1">表示するフォルダを絞り込む</div>
+              <FolderSelector
+                folderPaths={(() => {
+                  const folders: string[] = [];
+                  const collect = (nodes: typeof fullNestedTree, prefix: string = '') => {
+                    for (const node of nodes) {
+                      if (node.isDirectory) {
+                        const path = prefix ? `${prefix}/${node.name}` : node.name;
+                        folders.push(path);
+                        collect(node.children, path);
+                      }
+                    }
+                  };
+                  collect(fullNestedTree);
+                  return folders;
+                })()}
+                selectedFolders={sidebarFolders}
+                onChange={(folders) => setSidebarFolders(repoKey, folders)}
+                compact={true}
+              />
+            </div>
+          )}
 
           {/* 検索入力フィールド */}
           <div className="relative" ref={searchContainerRef}>

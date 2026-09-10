@@ -66,6 +66,14 @@ export interface SplitPane {
 export type PaneNode = LeafPane | SplitPane;
 
 /**
+ * @description ペインツリーのスナップショット（サーバー保存用）
+ */
+export interface PaneSnapshot {
+  rootPane: PaneNode;
+  activePaneId: string;
+}
+
+/**
  * @description タブストアの状態とアクションの型定義
  */
 interface TabStore {
@@ -91,6 +99,8 @@ interface TabStore {
   updatePaneSizes: (splitPaneId: string, sizes: number[]) => void;
   /** 他のタブを全て閉じる */
   closeOtherTabs: (tabId: string, paneId: string) => void;
+  /** ペインツリーの状態を復元する */
+  restoreTree: (node: PaneNode, activePaneId: string) => void;
 }
 
 // ============================================================
@@ -451,5 +461,13 @@ export const useTabStore = create<TabStore>((set, get) => ({
         return { ...pane, tabs: [keepTab], activeTabId: keepTab.id };
       }) ?? prev.rootPane,
     }));
+  },
+
+  // ツリーを復元する
+  restoreTree: (node: PaneNode, activePaneId: string) => {
+    set({
+      rootPane: node,
+      activePaneId: activePaneId,
+    });
   },
 }));

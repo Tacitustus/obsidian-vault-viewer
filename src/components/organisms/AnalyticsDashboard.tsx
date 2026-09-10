@@ -26,6 +26,7 @@ import {
 
 import { useAnalyticsStore } from '@/stores/analyticsStore';
 import { useVaultStore } from '@/stores/vaultStore';
+import { FolderSelector } from '@/components/molecules/FolderSelector';
 
 import type { AnalyticsFilter, FilterOperator } from '@/lib/analyticsApi';
 import type { HeatMapNode } from '@/stores/analyticsStore';
@@ -305,25 +306,12 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
                   </div>
 
                   {/* フォルダ選択 */}
-                  <div className="max-h-[120px] overflow-y-auto space-y-0.5">
-                    {folderPaths.map((folder) => (
-                      <label key={folder} className="flex items-center gap-1.5 text-[10px] text-gray-600 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/30 px-1 rounded">
-                        <input
-                          type="checkbox"
-                          checked={editFolderPaths.includes(folder)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setEditFolderPaths((prev) => [...prev, folder]);
-                            } else {
-                              setEditFolderPaths((prev) => prev.filter((p) => p !== folder));
-                            }
-                          }}
-                          className="rounded border-gray-300 dark:border-gray-600 text-primary-500"
-                        />
-                        {folder}
-                      </label>
-                    ))}
-                  </div>
+                  <FolderSelector
+                    folderPaths={folderPaths}
+                    selectedFolders={editFolderPaths}
+                    onChange={setEditFolderPaths}
+                    compact={true}
+                  />
 
                   <button
                     className="w-full text-[10px] py-1 rounded bg-primary-500 text-white hover:bg-primary-600 transition-colors disabled:opacity-50"

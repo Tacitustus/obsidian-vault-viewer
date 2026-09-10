@@ -14,6 +14,7 @@
 import { useState, useMemo, useEffect } from 'react';
 
 import { useVaultStore } from '@/stores/vaultStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { filterTree } from '@/lib/fileTreeParser';
 import { fetchFileContent, decodeBase64Content } from '@/lib/githubApi';
 import type { TreeNode } from '@/types/Vault';
@@ -65,16 +66,57 @@ const generateSnippet = (text: string, query: string): string => {
 };
 
 export const useFileTree = () => {
-  // ストアからネストツリーを取得する
-  const nestedTree = useVaultStore((state) => state.nestedTree);
-  const flatTree = useVaultStore((state) => state.flatTree);
+  // ストアから情報を取得する
   const connection = useVaultStore((state) => state.connection);
+  const flatTree = useVaultStore((state) => state.flatTree);
+  const nestedTree = useVaultStore((state) => state.nestedTree);
+  const sidebarFolders = useSettingsStore((state) => state.sidebarFolders);
+
+  // 1. サーバー設定（sidebarFolders）による絞り込みを適用したベースツリー
+  const baseTree = useMemo(() => {
+    if (sidebarFolders.length === 0) return nestedTree;
+
+    // 指定されたフォルダ（またはそのサブフォルダ、親ディレクトリ等）のみを残す
+    // ※ ルート直下のファイルも消える可能性があるが、今回は指定フォルダ配下のみを表示する仕様とする
+    const filterBySettings = (nodes: TreeNode[]): TreeNode[] => {
+      const result: TreeNode[] = [];
+      for (const node of nodes) {
+        // 現在のノードが、許可されたフォルダのいずれかに属しているか（パスの前方一致など）
+        const isAllowedPath = sidebarFolders.some(
+          (allowed) =>
+            node.path === allowed ||
+            node.path.startsWith(`${allowed}/`) ||
+            allowed.startsWith(`${node.path}/`) // 親フォルダは展開のために残す
+        );
+
+        if (isAllowedPath) {
+          if (node.isDirectory) {
+            const filteredChildren = filterBySettings(node.children);
+            // サブフォルダが残っていれば追加、または自身が許可されたフォルダの配下なら全て追加
+            const isSelfOrDescendant = sidebarFolders.some(
+              (allowed) => node.path === allowed || node.path.startsWith(`${allowed}/`)
+            );
+            if (isSelfOrDescendant) {
+              result.push(node);
+            } else if (filteredChildren.length > 0) {
+              result.push({ ...node, children: filteredChildren });
+            }
+          } else {
+            result.push(node);
+          }
+        }
+      }
+      return result;
+    };
+
+    return filterBySettings(nestedTree);
+  }, [nestedTree, sidebarFolders]);
 
   // 検索クエリの状態を管理する
   const [searchQuery, setSearchQuery] = useState('');
 
   // フィルタ済みツリーの状態
-  const [filteredTree, setFilteredTree] = useState<TreeNode[]>(nestedTree);
+  const [filteredTree, setFilteredTree] = useState<TreeNode[]>(baseTree);
 
   // 検索結果（マッチ種別・スニペット付き）
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -82,7 +124,7 @@ export const useFileTree = () => {
   // 検索クエリが変更されたら本文検索も含めてフィルタリングする
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setFilteredTree(nestedTree);
+      setFilteredTree(baseTree);
       setSearchResults([]);
       return;
     }
@@ -93,7 +135,7 @@ export const useFileTree = () => {
     // デバウンス処理
     const timer = setTimeout(async () => {
       // 1. ファイル名・パスによる同期フィルタリング
-      const nameFiltered = filterTree(nestedTree, searchQuery);
+      const nameFiltered = filterTree(baseTree, searchQuery);
 
       // ファイル名マッチの検索結果を生成する
       const nameResults: SearchResult[] = [];
@@ -113,7 +155,7 @@ export const useFileTree = () => {
           }
         }
       };
-      collectNameMatches(nestedTree);
+      collectNameMatches(baseTree);
 
       if (!connection) {
         if (!isCancelled) {
@@ -194,7 +236,7 @@ export const useFileTree = () => {
             }
             return undefined;
           };
-          const node = findNode(nestedTree);
+          const node = findNode(baseTree);
           if (node) {
             contentResults.push({
               node,
@@ -209,7 +251,7 @@ export const useFileTree = () => {
       // 検索結果を統合する（ファイル名マッチが先、コンテンツマッチが後）
       const allResults = [...nameResults, ...contentResults];
 
-      setFilteredTree(combinedFilter(nestedTree));
+      setFilteredTree(combinedFilter(baseTree));
       setSearchResults(allResults);
 
     }, 500); // 500ms デバウンス
@@ -218,7 +260,7 @@ export const useFileTree = () => {
       isCancelled = true;
       clearTimeout(timer);
     };
-  }, [nestedTree, flatTree, searchQuery, connection]);
+  }, [baseTree, nestedTree, flatTree, searchQuery, connection]);
 
   // 全 Markdown ファイルのパス一覧を取得する（リンク解決用）
   const allMarkdownPaths = useMemo(() => {
@@ -233,7 +275,7 @@ export const useFileTree = () => {
   }, [flatTree]);
 
   return {
-    nestedTree,
+    nestedTree: baseTree, // 絞り込み済みのツリーをベースとして扱う
     filteredTree,
     searchQuery,
     setSearchQuery,

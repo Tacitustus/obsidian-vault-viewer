@@ -126,6 +126,7 @@ UIコンポーネントから分離したデータ層（hooks/stores）に集約
 |-----------|------|
 | `note_views` | ノートごとの閲覧回数（`repo_key`, `file_path`, `view_count`, `last_viewed_at`） |
 | `analytics_filters` | アナリティクスフィルタ設定（`repo_key`, `filter_name`, `folder_paths`, `operator`） |
+| `vault_settings` | Vaultの共有設定、サイドバーフォルダ絞り込みやタブ構成（`repo_key`, `sidebar_folders`, `opened_tabs`） |
 
 - `@supabase/supabase-js` を使用し、`VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` で接続する。
 - 環境変数が未設定の場合、アナリティクス機能は自動的に無効になる（グレースフルデグレード）。
@@ -139,6 +140,7 @@ UIコンポーネントから分離したデータ層（hooks/stores）に集約
 | `searchStore` | 検索モード（filename / content / tag）、検索クエリ、選択タグ、フォーカス状態 |
 | `tabStore` | タブ管理、ペインツリー（再帰的 LeafPane / SplitPane 構造） |
 | `analyticsStore` | 閲覧回数データ、ヒートマップ生成、フィルタ管理 |
+| `settingsStore` | Vault単位の共有設定（サイドバーのフォルダ絞り込み、タブ・ペイン状態の保存・復元） |
 
 ## 更新履歴
 
@@ -146,3 +148,4 @@ UIコンポーネントから分離したデータ層（hooks/stores）に集約
 | ---------- | --- | ------------------------------------ |
 | 2026-09-03 | 1.0 | 初版作成（読み取り専用ビューア仕様） |
 | 2026-09-10 | 2.0 | 複数タブ＋ペイン分割、検索強化、タグ検索、アナリティクス機能を追加 |
+| 2026-09-11 | 2.1 | フォルダ絞り込み機能、タブ・ペイン状態のサーバー自動保存機能を追加 |
