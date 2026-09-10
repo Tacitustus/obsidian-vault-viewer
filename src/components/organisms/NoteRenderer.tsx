@@ -15,13 +15,13 @@
 import { useMemo, useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Link } from 'react-router-dom';
 
 import rehypeRaw from 'rehype-raw';
 
 import { remarkObsidianLink } from '@/lib/remark/remarkObsidianLink';
 import { useWikilinkResolver } from '@/hooks/useWikilinkResolver';
 import { useVaultStore } from '@/stores/vaultStore';
+import { useTabStore } from '@/stores/tabStore';
 import { buildRawImageUrl, fetchFileContent, buildBase64ImageUrl } from '@/lib/githubApi';
 import { NoteEmbed } from '@/components/organisms/NoteEmbed';
 
@@ -42,6 +42,7 @@ export const NoteRenderer = ({
   // wikilink 解決フック
   const { resolveWikilink, resolveFilePath } = useWikilinkResolver();
   const connection = useVaultStore((state) => state.connection);
+  const openTab = useTabStore((state) => state.openTab);
 
   // remark プラグイン配列をメモ化する
   const remarkPlugins = useMemo(() => [remarkGfm, remarkObsidianLink], []);
@@ -75,17 +76,23 @@ export const NoteRenderer = ({
         const displayText = alias || target;
 
         if (resolved.isResolved && resolved.resolvedPath) {
-          // 解決済み: React Router のリンクとして表示する
+          // 解決済み: openTab を呼び出してタブを開く
           const vaultPath = resolved.resolvedPath.replace(/\.md$/, '');
           // TODO: [[Note#見出し]] の見出しへのスクロールは今後実装する
           return (
-            <Link
-              to={`/vault/${vaultPath}`}
+            <a
+              href={`/vault/${vaultPath}`}
               className="wiki-link-resolved text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 underline decoration-primary-300 dark:decoration-primary-600 underline-offset-2 hover:decoration-primary-500 transition-colors duration-200"
               title={`${target}${heading ? `#${heading}` : ''}`}
+              onClick={(e) => {
+                if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+                  e.preventDefault();
+                  openTab(resolved.resolvedPath!);
+                }
+              }}
             >
               {displayText}
-            </Link>
+            </a>
           );
         }
 
@@ -210,8 +217,29 @@ export const NoteRenderer = ({
           );
         }
 
+        // 内部リンクの場合は対象を解決してタブを開く
         return (
-          <a href={href} {...props}>
+          <a
+            href={href}
+            onClick={(e) => {
+              if (e.button === 0 && !e.ctrlKey && !e.metaKey && href && !href.startsWith('#')) {
+                // 絶対URLや#以外の場合
+                e.preventDefault();
+                // 簡易的なパス解決（厳密な相対解決は省略し resolveFilePath に任せる）
+                let targetPath = href;
+                if (href.startsWith('/vault/')) {
+                  targetPath = href.replace('/vault/', '') + '.md';
+                }
+                const resolved = resolveFilePath(targetPath);
+                if (resolved) {
+                  openTab(resolved);
+                } else if (targetPath.endsWith('.md')) {
+                  openTab(targetPath);
+                }
+              }
+            }}
+            {...props}
+          >
             {children}
           </a>
         );
@@ -326,7 +354,7 @@ export const NoteRenderer = ({
         <hr className="my-6 border-gray-200 dark:border-gray-700" />
       ),
     }),
-    [resolveWikilink, resolveFilePath, connection, currentNotePath],
+    [resolveWikilink, resolveFilePath, connection, currentNotePath, openTab],
   );
 
   return (

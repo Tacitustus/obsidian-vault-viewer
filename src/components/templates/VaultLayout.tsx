@@ -53,7 +53,7 @@ export const VaultLayout = () => {
   useEffect(() => {
     const pathMatch = location.pathname.match(/\/vault\/(.+)/);
     if (pathMatch && pathMatch[1]) {
-      const notePath = pathMatch[1];
+      const notePath = decodeURIComponent(pathMatch[1]);
       const filePath = `${notePath}.md`;
       openTab(filePath);
     }
@@ -67,7 +67,7 @@ export const VaultLayout = () => {
     if (activeFilePath) {
       const vaultPath = activeFilePath.replace(/\.(md|markdown)$/, '');
       const targetPath = `/vault/${vaultPath}`;
-      if (location.pathname !== targetPath) {
+      if (decodeURIComponent(location.pathname) !== targetPath) {
         void navigate(targetPath, { replace: true });
       }
     }

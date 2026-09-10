@@ -103,8 +103,9 @@ interface TabStore {
  * @returns {string} タブタイトル
  */
 const createTabTitle = (filePath: string): string => {
-  // パスの最後のセグメントを取得し、拡張子を除去する
-  return filePath.split('/').pop()?.replace(/\.(md|markdown)$/, '') ?? filePath;
+  // タブのタイトルはファイルパスのベース名にする（URLエンコードされている場合を考慮）
+  const decodedPath = decodeURIComponent(filePath);
+  return decodedPath.split('/').pop()?.replace(/\.(md|markdown)$/, '') ?? decodedPath;
 };
 
 /**

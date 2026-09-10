@@ -47,7 +47,7 @@ export const NoteContent = ({ filePath }: NoteContentProps) => {
 
   // ファイルパスからノートタイトルを生成する
   const noteTitle = filePath
-    ? filePath.split('/').pop()?.replace(/\.(md|markdown)$/, '') ?? filePath
+    ? decodeURIComponent(filePath).split('/').pop()?.replace(/\.(md|markdown)$/, '') ?? decodeURIComponent(filePath)
     : null;
 
   // ノートが選択されていない場合のウェルカム画面
