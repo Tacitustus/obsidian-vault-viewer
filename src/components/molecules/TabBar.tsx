@@ -76,7 +76,10 @@ export const TabBar = ({ paneId, tabs, activeTabId, onContextMenu }: TabBarProps
   const handleContainerDrop = (e: React.DragEvent) => {
     e.preventDefault();
     try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json')) as { tabId?: string; sourcePaneId?: string };
+      const data = JSON.parse(e.dataTransfer.getData('application/json')) as {
+        tabId?: string;
+        sourcePaneId?: string;
+      };
       if (data.tabId && data.sourcePaneId) {
         reorderTab(data.tabId, data.sourcePaneId, paneId, tabs.length);
       }
@@ -90,7 +93,10 @@ export const TabBar = ({ paneId, tabs, activeTabId, onContextMenu }: TabBarProps
     e.preventDefault();
     e.stopPropagation(); // コンテナのドロップイベントをトリガーしないようにする
     try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json')) as { tabId?: string; sourcePaneId?: string };
+      const data = JSON.parse(e.dataTransfer.getData('application/json')) as {
+        tabId?: string;
+        sourcePaneId?: string;
+      };
       if (data.tabId && data.sourcePaneId) {
         reorderTab(data.tabId, data.sourcePaneId, paneId, targetIndex);
       }
@@ -118,9 +124,9 @@ export const TabBar = ({ paneId, tabs, activeTabId, onContextMenu }: TabBarProps
           clientX,
           clientY,
         } as unknown as React.MouseEvent,
-        tabId
+        tabId,
       );
-    }, 500); // 500msで長押し判定
+    }, 50); // 50msで長押し判定
   };
 
   // タップ終了・キャンセル時のハンドラー（長押しキャンセル用）
