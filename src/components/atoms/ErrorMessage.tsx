@@ -36,9 +36,7 @@ const typeStyles = {
   warning: {
     container:
       'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/50 text-yellow-800 dark:text-yellow-300',
-    icon: (
-      <AlertTriangle className="w-5 h-5 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
-    ),
+    icon: <AlertTriangle className="w-5 h-5 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />,
   },
   info: {
     container:

@@ -45,10 +45,7 @@ const formatValue = (value: unknown): string => {
   return String(value);
 };
 
-export const FrontmatterPanel = ({
-  frontmatter,
-  className = '',
-}: FrontmatterPanelProps) => {
+export const FrontmatterPanel = ({ frontmatter, className = '' }: FrontmatterPanelProps) => {
   // フロントマターの展開/折り畳み状態を管理する
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -80,7 +77,10 @@ export const FrontmatterPanel = ({
       return value.map((v) => String(v)).filter((v) => v.trim());
     }
     if (typeof value === 'string') {
-      return value.split(',').map((v) => v.trim()).filter((v) => v);
+      return value
+        .split(',')
+        .map((v) => v.trim())
+        .filter((v) => v);
     }
     return [];
   };
@@ -95,11 +95,7 @@ export const FrontmatterPanel = ({
         onClick={() => setIsExpanded((prev) => !prev)}
         aria-expanded={isExpanded}
       >
-        {isExpanded ? (
-          <ChevronDown className="w-4 h-4" />
-        ) : (
-          <ChevronRight className="w-4 h-4" />
-        )}
+        {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         Properties
       </button>
 
@@ -107,10 +103,7 @@ export const FrontmatterPanel = ({
       {isExpanded && (
         <div className="px-4 pb-3 space-y-1.5">
           {keys.map((key) => (
-            <div
-              key={key}
-              className="flex gap-3 text-sm"
-            >
+            <div key={key} className="flex gap-3 text-sm">
               {/* キー名 */}
               <span className="flex-shrink-0 text-gray-500 dark:text-gray-400 font-medium min-w-[80px]">
                 {key}
@@ -119,11 +112,7 @@ export const FrontmatterPanel = ({
               {isTagField(key) ? (
                 <div className="flex flex-wrap gap-1">
                   {getTagArray(frontmatter[key]).map((tag) => (
-                    <Badge
-                      key={tag}
-                      tag={tag}
-                      onClick={() => selectTag(tag)}
-                    />
+                    <Badge key={tag} tag={tag} onClick={() => selectTag(tag)} />
                   ))}
                 </div>
               ) : (
@@ -138,4 +127,3 @@ export const FrontmatterPanel = ({
     </div>
   );
 };
-

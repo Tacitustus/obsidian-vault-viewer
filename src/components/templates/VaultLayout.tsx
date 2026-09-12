@@ -155,9 +155,7 @@ export const VaultLayout = () => {
             {connection && (
               <span className="text-xs text-gray-500 dark:text-gray-400 hidden md:inline">
                 {connection.owner}/{connection.repo}
-                <span className="ml-1 text-gray-400 dark:text-gray-500">
-                  @ {connection.branch}
-                </span>
+                <span className="ml-1 text-gray-400 dark:text-gray-500">@ {connection.branch}</span>
               </span>
             )}
           </div>
@@ -169,17 +167,9 @@ export const VaultLayout = () => {
               variant="ghost"
               size="sm"
               onClick={toggleDarkMode}
-              aria-label={
-                isDarkMode
-                  ? 'ライトモードに切り替え'
-                  : 'ダークモードに切り替え'
-              }
+              aria-label={isDarkMode ? 'ライトモードに切り替え' : 'ダークモードに切り替え'}
             >
-              {isDarkMode ? (
-                <Sun className="w-4 h-4" />
-              ) : (
-                <Moon className="w-4 h-4" />
-              )}
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
 
             {/* 切断ボタン */}
@@ -212,4 +202,3 @@ export const VaultLayout = () => {
     </div>
   );
 };
-

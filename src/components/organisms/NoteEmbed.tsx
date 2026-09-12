@@ -35,11 +35,7 @@ interface NoteEmbedProps {
   visitedPaths?: Set<string>;
 }
 
-export const NoteEmbed = ({
-  target,
-  depth = 0,
-  visitedPaths = new Set(),
-}: NoteEmbedProps) => {
+export const NoteEmbed = ({ target, depth = 0, visitedPaths = new Set() }: NoteEmbedProps) => {
   // ストアから接続情報を取得する
   const connection = useVaultStore((state) => state.connection);
 
@@ -115,9 +111,7 @@ export const NoteEmbed = ({
     return (
       <div className="wiki-embed-loading flex items-center gap-2 p-3 rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-50 dark:bg-gray-800/30">
         <Spinner size="sm" />
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {target} を読み込み中...
-        </span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{target} を読み込み中...</span>
       </div>
     );
   }
@@ -152,9 +146,7 @@ export const NoteEmbed = ({
         <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
           {parsedNote.body.slice(0, 2000)}
           {parsedNote.body.length > 2000 && (
-            <span className="text-gray-400 dark:text-gray-500">
-              ... (省略)
-            </span>
+            <span className="text-gray-400 dark:text-gray-500">... (省略)</span>
           )}
         </div>
       </div>

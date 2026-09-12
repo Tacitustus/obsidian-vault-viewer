@@ -21,7 +21,7 @@ import type { VaultConnection, GitHubTreeItem } from '@/types/Vault';
 /**
  * @description 検索モードの種別
  */
-export type SearchMode = 'filename' | 'content' | 'tag';
+export type SearchMode = 'search' | 'tag';
 
 /**
  * @description 検索ストアの状態とアクションの型定義
@@ -67,7 +67,7 @@ interface SearchStore {
 
 export const useSearchStore = create<SearchStore>((set, get) => ({
   // 初期状態
-  searchMode: 'filename',
+  searchMode: 'search',
   searchQuery: '',
   selectedTag: null,
   isSearchFocused: false,
@@ -109,7 +109,7 @@ export const useSearchStore = create<SearchStore>((set, get) => ({
   // 検索状態をすべてリセットする
   resetSearch: () => {
     set({
-      searchMode: 'filename',
+      searchMode: 'search',
       searchQuery: '',
       selectedTag: null,
       isSearchFocused: false,

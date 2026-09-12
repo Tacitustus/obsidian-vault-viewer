@@ -54,7 +54,7 @@ const getHeatColor = (heatValue: number): string => {
     // 黄→赤
     const t = (heatValue - 0.5) * 2;
     const r = Math.round(250 + t * (239 - 250));
-    const g = Math.round(204 - t * (136));
+    const g = Math.round(204 - t * 136);
     const b = Math.round(0 + t * 68);
     return `rgb(${String(r)}, ${String(g)}, ${String(b)})`;
   }
@@ -127,7 +127,7 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
   // フィルタ保存ハンドラー
   const handleSaveFilter = async () => {
     if (editFolderPaths.length === 0) return;
-    
+
     // 選択されたフォルダをカンマ区切りでフィルタ名にする
     // （長すぎる場合は末尾を省略する）
     const joinedNames = editFolderPaths.join(', ');
@@ -177,7 +177,10 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
                   ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                   : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
-              onClick={() => { setShowRanking(true); setShowHeatMap(false); }}
+              onClick={() => {
+                setShowRanking(true);
+                setShowHeatMap(false);
+              }}
             >
               <Eye className="w-3 h-3 inline-block mr-0.5" />
               ランキング
@@ -188,7 +191,10 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
                   ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                   : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
-              onClick={() => { setShowHeatMap(true); setShowRanking(false); }}
+              onClick={() => {
+                setShowHeatMap(true);
+                setShowRanking(false);
+              }}
             >
               <Flame className="w-3 h-3 inline-block mr-0.5" />
               ヒートマップ
@@ -205,7 +211,11 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
               ) : (
                 topNotes.slice(0, 10).map((note, index) => {
                   // ファイル名を取得する
-                  const fileName = note.file_path.split('/').pop()?.replace(/\.(md|markdown)$/, '') ?? note.file_path;
+                  const fileName =
+                    note.file_path
+                      .split('/')
+                      .pop()
+                      ?.replace(/\.(md|markdown)$/, '') ?? note.file_path;
                   // ランキング色
                   const rankColors = ['text-yellow-500', 'text-gray-400', 'text-orange-600'];
                   const rankColor = rankColors[index] ?? 'text-gray-400 dark:text-gray-500';

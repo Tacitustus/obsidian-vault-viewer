@@ -40,21 +40,19 @@ export const fetchVaultSettings = async (repoKey: string): Promise<VaultSettings
  */
 export const updateVaultSettings = async (
   repoKey: string,
-  settings: Partial<VaultSettings>
+  settings: Partial<VaultSettings>,
 ): Promise<boolean> => {
   if (!isSupabaseEnabled()) return false;
 
   try {
-    const { error } = await supabase!
-      .from('vault_settings')
-      .upsert(
-        {
-          repo_key: repoKey,
-          ...settings,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'repo_key' }
-      );
+    const { error } = await supabase!.from('vault_settings').upsert(
+      {
+        repo_key: repoKey,
+        ...settings,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'repo_key' },
+    );
 
     if (error) {
       console.error('Failed to update vault settings:', error);

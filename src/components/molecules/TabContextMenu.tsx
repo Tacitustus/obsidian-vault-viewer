@@ -12,12 +12,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import {
-  Columns2,
-  Rows2,
-  X,
-  XCircle,
-} from 'lucide-react';
+import { Columns2, Rows2, X, XCircle } from 'lucide-react';
 
 import { useTabStore } from '@/stores/tabStore';
 
@@ -48,13 +43,7 @@ interface MenuItem {
   separator?: boolean;
 }
 
-export const TabContextMenu = ({
-  x,
-  y,
-  tabId,
-  paneId,
-  onClose,
-}: TabContextMenuProps) => {
+export const TabContextMenu = ({ x, y, tabId, paneId, onClose }: TabContextMenuProps) => {
   // タブストアからアクションを取得する
   const splitPane = useTabStore((state) => state.splitPane);
   const closeTab = useTabStore((state) => state.closeTab);
@@ -138,9 +127,7 @@ export const TabContextMenu = ({
       {menuItems.map((item) => (
         <div key={item.label}>
           {/* 区切り線 */}
-          {item.separator && (
-            <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
-          )}
+          {item.separator && <div className="my-1 border-t border-gray-200 dark:border-gray-700" />}
 
           {/* メニューアイテム */}
           <button

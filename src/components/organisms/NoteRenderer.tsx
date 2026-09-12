@@ -35,10 +35,7 @@ interface NoteRendererProps {
   currentNotePath?: string;
 }
 
-export const NoteRenderer = ({
-  body,
-  currentNotePath,
-}: NoteRendererProps) => {
+export const NoteRenderer = ({ body, currentNotePath }: NoteRendererProps) => {
   // wikilink 解決フック
   const { resolveWikilink, resolveFilePath } = useWikilinkResolver();
   const connection = useVaultStore((state) => state.connection);
@@ -66,11 +63,7 @@ export const NoteRenderer = ({
         if (!target) return <span {...props} />;
 
         // wikilink を解決する
-        const resolved = resolveWikilink(
-          target,
-          alias ?? undefined,
-          heading ?? undefined,
-        );
+        const resolved = resolveWikilink(target, alias ?? undefined, heading ?? undefined);
 
         // 表示テキスト
         const displayText = alias || target;
@@ -137,9 +130,7 @@ export const NoteRenderer = ({
         if (embedType === 'pdf') {
           return (
             <div className="wiki-embed-pdf p-3 rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-50 dark:bg-gray-800/30 text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
-                📄 PDF: {target}
-              </span>
+              <span className="text-gray-600 dark:text-gray-400">📄 PDF: {target}</span>
             </div>
           );
         }
@@ -149,11 +140,7 @@ export const NoteRenderer = ({
       },
 
       // 標準 Markdown 画像のカスタムレンダリング
-      img: ({
-        src,
-        alt,
-        ...props
-      }: React.ImgHTMLAttributes<HTMLImageElement>) => {
+      img: ({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
         // 外部URL の場合はそのまま表示する
         if (src?.startsWith('http://') || src?.startsWith('https://')) {
           return (
@@ -172,10 +159,7 @@ export const NoteRenderer = ({
           let resolvedSrc = src;
           // 相対パスの場合、現在のノートのディレクトリを基準にする
           if (currentNotePath && !src.startsWith('/')) {
-            const currentDir = currentNotePath
-              .split('/')
-              .slice(0, -1)
-              .join('/');
+            const currentDir = currentNotePath.split('/').slice(0, -1).join('/');
             resolvedSrc = currentDir ? `${currentDir}/${src}` : src;
           }
           const imageUrl = buildRawImageUrl(connection, resolvedSrc);
@@ -194,16 +178,9 @@ export const NoteRenderer = ({
       },
 
       // リンクの target="_blank" 設定（外部リンク）
-      a: ({
-        href,
-        children,
-        ...props
-      }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
+      a: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
         // 外部リンクの場合は新しいタブで開く
-        if (
-          href?.startsWith('http://') ||
-          href?.startsWith('https://')
-        ) {
+        if (href?.startsWith('http://') || href?.startsWith('https://')) {
           return (
             <a
               href={href}
@@ -246,10 +223,7 @@ export const NoteRenderer = ({
       },
 
       // テーブルのスタイリング
-      table: ({
-        children,
-        ...props
-      }: React.TableHTMLAttributes<HTMLTableElement>) => (
+      table: ({ children, ...props }: React.TableHTMLAttributes<HTMLTableElement>) => (
         <div className="overflow-x-auto my-4">
           <table
             className="min-w-full border-collapse border border-gray-200 dark:border-gray-700"
@@ -260,10 +234,7 @@ export const NoteRenderer = ({
         </div>
       ),
 
-      th: ({
-        children,
-        ...props
-      }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
+      th: ({ children, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
         <th
           className="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
           {...props}
@@ -272,10 +243,7 @@ export const NoteRenderer = ({
         </th>
       ),
 
-      td: ({
-        children,
-        ...props
-      }: React.TdHTMLAttributes<HTMLTableCellElement>) => (
+      td: ({ children, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) => (
         <td
           className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
           {...props}
@@ -299,11 +267,7 @@ export const NoteRenderer = ({
       },
 
       // コードブロックのスタイリング
-      code: ({
-        children,
-        className,
-        ...props
-      }: React.HTMLAttributes<HTMLElement>) => {
+      code: ({ children, className, ...props }: React.HTMLAttributes<HTMLElement>) => {
         // インラインコードの場合
         const isInline = !className;
         if (isInline) {
@@ -324,10 +288,7 @@ export const NoteRenderer = ({
         );
       },
 
-      pre: ({
-        children,
-        ...props
-      }: React.HTMLAttributes<HTMLPreElement>) => (
+      pre: ({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
         <pre
           className="p-4 my-4 rounded-xl bg-gray-900 dark:bg-gray-950 text-gray-100 overflow-x-auto text-sm leading-relaxed"
           {...props}
@@ -337,10 +298,7 @@ export const NoteRenderer = ({
       ),
 
       // ブロック引用のスタイリング
-      blockquote: ({
-        children,
-        ...props
-      }: React.BlockquoteHTMLAttributes<HTMLQuoteElement>) => (
+      blockquote: ({ children, ...props }: React.BlockquoteHTMLAttributes<HTMLQuoteElement>) => (
         <blockquote
           className="my-4 pl-4 border-l-4 border-primary-300 dark:border-primary-600 text-gray-600 dark:text-gray-400 italic"
           {...props}
@@ -350,16 +308,18 @@ export const NoteRenderer = ({
       ),
 
       // 水平線のスタイリング
-      hr: () => (
-        <hr className="my-6 border-gray-200 dark:border-gray-700" />
-      ),
+      hr: () => <hr className="my-6 border-gray-200 dark:border-gray-700" />,
     }),
     [resolveWikilink, resolveFilePath, connection, currentNotePath, openTab],
   );
 
   return (
     <div className="note-renderer prose-custom">
-      <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins} components={components}>
+      <ReactMarkdown
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
+        components={components}
+      >
         {body}
       </ReactMarkdown>
     </div>
@@ -411,9 +371,7 @@ const EmbedImage = ({
   }, [target, connection, resolveFilePath]);
 
   if (!imageSrc) {
-    return (
-      <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-32 w-full" />
-    );
+    return <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-32 w-full" />;
   }
 
   return (

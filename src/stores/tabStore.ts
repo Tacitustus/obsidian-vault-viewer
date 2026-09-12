@@ -101,6 +101,13 @@ interface TabStore {
   closeOtherTabs: (tabId: string, paneId: string) => void;
   /** ペインツリーの状態を復元する */
   restoreTree: (node: PaneNode, activePaneId: string) => void;
+  /** タブを並び替える・別ペインへ移動する */
+  reorderTab: (
+    tabId: string,
+    sourcePaneId: string,
+    targetPaneId: string,
+    targetIndex: number,
+  ) => void;
 }
 
 // ============================================================
@@ -115,7 +122,12 @@ interface TabStore {
 const createTabTitle = (filePath: string): string => {
   // タブのタイトルはファイルパスのベース名にする（URLエンコードされている場合を考慮）
   const decodedPath = decodeURIComponent(filePath);
-  return decodedPath.split('/').pop()?.replace(/\.(md|markdown)$/, '') ?? decodedPath;
+  return (
+    decodedPath
+      .split('/')
+      .pop()
+      ?.replace(/\.(md|markdown)$/, '') ?? decodedPath
+  );
 };
 
 /**
@@ -259,10 +271,11 @@ export const useTabStore = create<TabStore>((set, get) => ({
     if (existing) {
       // 既存タブをアクティブにする
       set((prev) => ({
-        rootPane: updatePaneInTree(prev.rootPane, existing.paneId, (pane) => {
-          if (pane.type !== 'leaf') return pane;
-          return { ...pane, activeTabId: existing.tabId };
-        }) ?? prev.rootPane,
+        rootPane:
+          updatePaneInTree(prev.rootPane, existing.paneId, (pane) => {
+            if (pane.type !== 'leaf') return pane;
+            return { ...pane, activeTabId: existing.tabId };
+          }) ?? prev.rootPane,
         activePaneId: existing.paneId,
       }));
       return;
@@ -280,14 +293,15 @@ export const useTabStore = create<TabStore>((set, get) => ({
 
     // ペインにタブを追加する
     set((prev) => ({
-      rootPane: updatePaneInTree(prev.rootPane, targetPaneId, (pane) => {
-        if (pane.type !== 'leaf') return pane;
-        return {
-          ...pane,
-          tabs: [...pane.tabs, newTab],
-          activeTabId: newTab.id,
-        };
-      }) ?? prev.rootPane,
+      rootPane:
+        updatePaneInTree(prev.rootPane, targetPaneId, (pane) => {
+          if (pane.type !== 'leaf') return pane;
+          return {
+            ...pane,
+            tabs: [...pane.tabs, newTab],
+            activeTabId: newTab.id,
+          };
+        }) ?? prev.rootPane,
       activePaneId: targetPaneId,
     }));
   },
@@ -308,8 +322,9 @@ export const useTabStore = create<TabStore>((set, get) => ({
 
         // タブが全て閉じられた場合
         if (newTabs.length === 0) {
-          // ルートペインの場合は空のペインを残す
-          if (prev.rootPane.id === paneId) {
+          // 最も左上のペイン（最初のリーフペイン）の場合は空のペインを残す
+          const firstLeaf = findFirstLeafPane(prev.rootPane);
+          if (firstLeaf && firstLeaf.id === paneId) {
             return { ...paneToUpdate, tabs: [], activeTabId: null };
           }
           // それ以外のペインは削除する
@@ -352,11 +367,13 @@ export const useTabStore = create<TabStore>((set, get) => ({
           // どのタブにも存在しなくなった場合、アナリティクスストアから閲覧状態をクリアする
           // importを増やすのを避けるため、必要な場合のみ動的にインポート・実行するか、直接呼び出す
           // Zustandのstoreはグローバルに状態を持つので、直接インポートして呼び出す
-          import('@/stores/analyticsStore').then(({ useAnalyticsStore }) => {
-            useAnalyticsStore.getState().clearSessionViewed(closedFilePath);
-          }).catch(() => {
-            // エラー時は何もしない
-          });
+          import('@/stores/analyticsStore')
+            .then(({ useAnalyticsStore }) => {
+              useAnalyticsStore.getState().clearSessionViewed(closedFilePath);
+            })
+            .catch(() => {
+              // エラー時は何もしない
+            });
         }
       }
 
@@ -367,10 +384,11 @@ export const useTabStore = create<TabStore>((set, get) => ({
   // アクティブタブを切り替える
   setActiveTab: (tabId: string, paneId: string) => {
     set((prev) => ({
-      rootPane: updatePaneInTree(prev.rootPane, paneId, (pane) => {
-        if (pane.type !== 'leaf') return pane;
-        return { ...pane, activeTabId: tabId };
-      }) ?? prev.rootPane,
+      rootPane:
+        updatePaneInTree(prev.rootPane, paneId, (pane) => {
+          if (pane.type !== 'leaf') return pane;
+          return { ...pane, activeTabId: tabId };
+        }) ?? prev.rootPane,
       activePaneId: paneId,
     }));
   },
@@ -401,11 +419,12 @@ export const useTabStore = create<TabStore>((set, get) => ({
         let originalPane = pane;
         if (tabToMove) {
           const remainingTabs = pane.tabs.filter((t) => t.id !== tabToMove.id);
-          const newActiveTabId = remainingTabs.length > 0
-            ? (pane.activeTabId === tabToMove.id
-              ? remainingTabs[0].id
-              : pane.activeTabId)
-            : null;
+          const newActiveTabId =
+            remainingTabs.length > 0
+              ? pane.activeTabId === tabToMove.id
+                ? remainingTabs[0].id
+                : pane.activeTabId
+              : null;
           originalPane = {
             ...pane,
             tabs: remainingTabs,
@@ -464,22 +483,24 @@ export const useTabStore = create<TabStore>((set, get) => ({
   // ペインのリサイズ比率を更新する
   updatePaneSizes: (splitPaneId: string, sizes: number[]) => {
     set((prev) => ({
-      rootPane: updatePaneInTree(prev.rootPane, splitPaneId, (pane) => {
-        if (pane.type !== 'split') return pane;
-        return { ...pane, sizes };
-      }) ?? prev.rootPane,
+      rootPane:
+        updatePaneInTree(prev.rootPane, splitPaneId, (pane) => {
+          if (pane.type !== 'split') return pane;
+          return { ...pane, sizes };
+        }) ?? prev.rootPane,
     }));
   },
 
   // 他のタブを全て閉じる
   closeOtherTabs: (tabId: string, paneId: string) => {
     set((prev) => ({
-      rootPane: updatePaneInTree(prev.rootPane, paneId, (pane) => {
-        if (pane.type !== 'leaf') return pane;
-        const keepTab = pane.tabs.find((t) => t.id === tabId);
-        if (!keepTab) return pane;
-        return { ...pane, tabs: [keepTab], activeTabId: keepTab.id };
-      }) ?? prev.rootPane,
+      rootPane:
+        updatePaneInTree(prev.rootPane, paneId, (pane) => {
+          if (pane.type !== 'leaf') return pane;
+          const keepTab = pane.tabs.find((t) => t.id === tabId);
+          if (!keepTab) return pane;
+          return { ...pane, tabs: [keepTab], activeTabId: keepTab.id };
+        }) ?? prev.rootPane,
     }));
   },
 
@@ -488,6 +509,77 @@ export const useTabStore = create<TabStore>((set, get) => ({
     set({
       rootPane: node,
       activePaneId: activePaneId,
+    });
+  },
+
+  // タブを並び替える・別ペインへ移動する
+  reorderTab: (tabId: string, sourcePaneId: string, targetPaneId: string, targetIndex: number) => {
+    set((prev) => {
+      const sourcePane = findLeafPane(prev.rootPane, sourcePaneId);
+      if (!sourcePane) return prev;
+
+      const tabToMove = sourcePane.tabs.find((t) => t.id === tabId);
+      if (!tabToMove) return prev;
+
+      // 同じペイン内での移動
+      if (sourcePaneId === targetPaneId) {
+        const updated = updatePaneInTree(prev.rootPane, sourcePaneId, (pane) => {
+          if (pane.type !== 'leaf') return pane;
+          const newTabs = [...pane.tabs];
+          const currentIndex = newTabs.findIndex((t) => t.id === tabId);
+          if (currentIndex === -1) return pane;
+
+          newTabs.splice(currentIndex, 1);
+          newTabs.splice(targetIndex, 0, tabToMove);
+
+          return { ...pane, tabs: newTabs };
+        });
+        return { rootPane: updated ?? prev.rootPane };
+      }
+
+      // 別ペインへの移動
+      // 1. targetPaneId にタブを追加
+      let updated = updatePaneInTree(prev.rootPane, targetPaneId, (pane) => {
+        if (pane.type !== 'leaf') return pane;
+        const newTabs = [...pane.tabs];
+        newTabs.splice(targetIndex, 0, tabToMove);
+        return { ...pane, tabs: newTabs, activeTabId: tabId };
+      });
+
+      if (!updated) return prev;
+
+      // 2. sourcePaneId からタブを削除
+      updated = updatePaneInTree(updated, sourcePaneId, (pane) => {
+        if (pane.type !== 'leaf') return pane;
+        const newTabs = pane.tabs.filter((t) => t.id !== tabId);
+
+        if (newTabs.length === 0) {
+          const firstLeaf = findFirstLeafPane(updated!);
+          if (firstLeaf && firstLeaf.id === sourcePaneId) {
+            return { ...pane, tabs: [], activeTabId: null };
+          }
+          return null;
+        }
+
+        let newActiveTabId = pane.activeTabId;
+        if (pane.activeTabId === tabId) {
+          const closedIndex = pane.tabs.findIndex((t) => t.id === tabId);
+          const newIndex = Math.min(closedIndex, newTabs.length - 1);
+          newActiveTabId = newTabs[newIndex].id;
+        }
+        return { ...pane, tabs: newTabs, activeTabId: newActiveTabId };
+      });
+
+      // アクティブペインが存在しなくなった場合、最初のリーフペインに設定する
+      let newActivePaneId = prev.activePaneId;
+      if (updated && !findLeafPane(updated, prev.activePaneId)) {
+        const firstLeaf = findFirstLeafPane(updated);
+        if (firstLeaf) {
+          newActivePaneId = firstLeaf.id;
+        }
+      }
+
+      return { rootPane: updated ?? prev.rootPane, activePaneId: newActivePaneId };
     });
   },
 }));

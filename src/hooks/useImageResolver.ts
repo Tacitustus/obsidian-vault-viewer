@@ -15,11 +15,7 @@
 import { useCallback } from 'react';
 
 import { useVaultStore } from '@/stores/vaultStore';
-import {
-  buildRawImageUrl,
-  fetchFileContent,
-  buildBase64ImageUrl,
-} from '@/lib/githubApi';
+import { buildRawImageUrl, fetchFileContent, buildBase64ImageUrl } from '@/lib/githubApi';
 import { useWikilinkResolver } from '@/hooks/useWikilinkResolver';
 
 export const useImageResolver = () => {

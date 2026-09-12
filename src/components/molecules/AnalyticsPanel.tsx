@@ -34,15 +34,15 @@ export const AnalyticsPanel = ({ filePath, className = '' }: AnalyticsPanelProps
     ? (analyticsMap.get(filePath)?.view_count ?? 0)
     : (memoryViewCounts.get(filePath) ?? 0);
 
-  const lastViewedAt = isEnabled
-    ? analyticsMap.get(filePath)?.last_viewed_at
-    : undefined;
+  const lastViewedAt = isEnabled ? analyticsMap.get(filePath)?.last_viewed_at : undefined;
 
   // 閲覧回数が0の場合は表示しない
   if (viewCount === 0) return null;
 
   return (
-    <div className={`flex items-center gap-4 text-[11px] text-gray-400 dark:text-gray-500 ${className}`}>
+    <div
+      className={`flex items-center gap-4 text-[11px] text-gray-400 dark:text-gray-500 ${className}`}
+    >
       {/* 閲覧回数 */}
       <div className="flex items-center gap-1">
         <Eye className="w-3 h-3" />

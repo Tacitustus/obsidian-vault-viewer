@@ -58,16 +58,7 @@ export interface WikiEmbedNode {
 // ============================================================
 
 /** 画像として認識する拡張子の一覧 */
-const IMAGE_EXTENSIONS = new Set([
-  'png',
-  'jpg',
-  'jpeg',
-  'gif',
-  'svg',
-  'webp',
-  'bmp',
-  'ico',
-]);
+const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico']);
 
 /** PDF として認識する拡張子 */
 const PDF_EXTENSION = 'pdf';
@@ -109,8 +100,7 @@ const isPdfFile = (fileName: string): boolean => {
  * wikilink記法: [[target]] / [[target|alias]]
  * 両方を一つの正規表現で処理する。embed は先にマッチさせる。
  */
-const WIKILINK_REGEX =
-  /(!?\[\[)([^\]|#]+?)(?:#([^\]|]*?))?(?:\|([^\]]*?))?\]\]/g;
+const WIKILINK_REGEX = /(!?\[\[)([^\]|#]+?)(?:#([^\]|]*?))?(?:\|([^\]]*?))?\]\]/g;
 
 // ============================================================
 // プラグイン本体
@@ -140,9 +130,7 @@ export const remarkObsidianLink: Plugin<[], Root> = () => {
  * @description ツリー内のテキストノードを再帰的に走査し、wikilink/embed パターンを変換する
  * @param {Root | { children: (RootContent | PhrasingContent)[] }} node - 走査対象のノード
  */
-const visitTextNodes = (
-  node: Root | { children: (RootContent | PhrasingContent)[] },
-): void => {
+const visitTextNodes = (node: Root | { children: (RootContent | PhrasingContent)[] }): void => {
   if (!('children' in node) || !Array.isArray(node.children)) {
     return;
   }
@@ -199,14 +187,10 @@ const parseWikilinksInText = (text: string): PhrasingContent[] => {
 
     if (isEmbed) {
       // embed ノードを生成する
-      nodes.push(
-        createEmbedNode(trimmedTarget, heading?.trim(), pipeValue?.trim()),
-      );
+      nodes.push(createEmbedNode(trimmedTarget, heading?.trim(), pipeValue?.trim()));
     } else {
       // wikilink ノードを生成する
-      nodes.push(
-        createWikilinkNode(trimmedTarget, heading?.trim(), pipeValue?.trim()),
-      );
+      nodes.push(createWikilinkNode(trimmedTarget, heading?.trim(), pipeValue?.trim()));
     }
 
     lastIndex = match.index + match[0].length;

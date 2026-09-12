@@ -22,27 +22,18 @@ interface SkeletonProps {
   className?: string;
 }
 
-export const Skeleton = ({
-  variant = 'text',
-  lines = 3,
-  className = '',
-}: SkeletonProps) => {
+export const Skeleton = ({ variant = 'text', lines = 3, className = '' }: SkeletonProps) => {
   // ベースのアニメーションクラス
-  const baseClass =
-    'bg-gray-200 dark:bg-gray-700 rounded animate-pulse';
+  const baseClass = 'bg-gray-200 dark:bg-gray-700 rounded animate-pulse';
 
   // タイトルバリアント: 1行の太い行
   if (variant === 'title') {
-    return (
-      <div className={`${baseClass} h-8 w-3/4 mb-4 ${className}`} />
-    );
+    return <div className={`${baseClass} h-8 w-3/4 mb-4 ${className}`} />;
   }
 
   // ブロックバリアント: 大きな矩形
   if (variant === 'block') {
-    return (
-      <div className={`${baseClass} h-32 w-full ${className}`} />
-    );
+    return <div className={`${baseClass} h-32 w-full ${className}`} />;
   }
 
   // テキストバリアント: 複数行のテキスト風プレースホルダー

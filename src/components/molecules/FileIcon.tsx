@@ -12,14 +12,7 @@
  * ```
  */
 
-import {
-  FileText,
-  Image,
-  FileDown,
-  File,
-  Folder,
-  FolderOpen,
-} from 'lucide-react';
+import { FileText, Image, FileDown, File, Folder, FolderOpen } from 'lucide-react';
 
 import type { FileType } from '@/types/Vault';
 
@@ -34,12 +27,7 @@ interface FileIconProps {
   className?: string;
 }
 
-export const FileIcon = ({
-  fileType,
-  isDirectory,
-  isExpanded,
-  className = '',
-}: FileIconProps) => {
+export const FileIcon = ({ fileType, isDirectory, isExpanded, className = '' }: FileIconProps) => {
   // 共通のアイコンサイズクラス
   const iconClass = `w-4 h-4 flex-shrink-0 ${className}`;
 
@@ -55,20 +43,12 @@ export const FileIcon = ({
   // ファイル種別に応じたアイコンを返す
   switch (fileType) {
     case 'markdown':
-      return (
-        <FileText className={`${iconClass} text-primary-500 dark:text-primary-400`} />
-      );
+      return <FileText className={`${iconClass} text-primary-500 dark:text-primary-400`} />;
     case 'image':
-      return (
-        <Image className={`${iconClass} text-green-500 dark:text-green-400`} />
-      );
+      return <Image className={`${iconClass} text-green-500 dark:text-green-400`} />;
     case 'pdf':
-      return (
-        <FileDown className={`${iconClass} text-red-500 dark:text-red-400`} />
-      );
+      return <FileDown className={`${iconClass} text-red-500 dark:text-red-400`} />;
     default:
-      return (
-        <File className={`${iconClass} text-gray-400 dark:text-gray-500`} />
-      );
+      return <File className={`${iconClass} text-gray-400 dark:text-gray-500`} />;
   }
 };

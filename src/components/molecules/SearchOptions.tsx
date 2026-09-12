@@ -12,7 +12,7 @@
  * ```
  */
 
-import { FileText, AlignLeft, Tag } from 'lucide-react';
+import { FileText, Tag } from 'lucide-react';
 
 import { useSearchStore } from '@/stores/searchStore';
 
@@ -40,16 +40,10 @@ interface SearchModeOption {
 /** 検索モードオプション一覧 */
 const SEARCH_MODE_OPTIONS: SearchModeOption[] = [
   {
-    mode: 'filename',
-    label: 'ファイル名検索',
-    description: 'ファイル名・パスで検索',
+    mode: 'search',
+    label: 'ファイル・本文検索',
+    description: 'ファイル名やノート内容で検索',
     icon: <FileText className="w-4 h-4" />,
-  },
-  {
-    mode: 'content',
-    label: '本文検索',
-    description: 'ノートの内容で検索',
-    icon: <AlignLeft className="w-4 h-4" />,
   },
   {
     mode: 'tag',
@@ -100,9 +94,11 @@ export const SearchOptions = ({ onClose }: SearchOptionsProps) => {
               role="menuitem"
             >
               {/* アイコン */}
-              <span className={`flex-shrink-0 ${
-                isActive ? 'text-primary-500' : 'text-gray-400 dark:text-gray-500'
-              }`}>
+              <span
+                className={`flex-shrink-0 ${
+                  isActive ? 'text-primary-500' : 'text-gray-400 dark:text-gray-500'
+                }`}
+              >
                 {option.icon}
               </span>
 
@@ -115,9 +111,7 @@ export const SearchOptions = ({ onClose }: SearchOptionsProps) => {
               </div>
 
               {/* アクティブインジケーター */}
-              {isActive && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500" />
-              )}
+              {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500" />}
             </button>
           );
         })}

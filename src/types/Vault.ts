@@ -200,12 +200,7 @@ export interface ResolvedEmbed {
 /**
  * @description GitHub API エラーの種別
  */
-export type ApiErrorType =
-  | 'rate_limit'
-  | 'not_found'
-  | 'unauthorized'
-  | 'network'
-  | 'unknown';
+export type ApiErrorType = 'rate_limit' | 'not_found' | 'unauthorized' | 'network' | 'unknown';
 
 /**
  * @description GitHub API エラー情報

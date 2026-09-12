@@ -18,12 +18,7 @@ import { fetchTree } from '@/lib/githubApi';
 import { buildNestedTree } from '@/lib/fileTreeParser';
 import { fileContentCache, fileTreeCache } from '@/lib/cache';
 
-import type {
-  ApiError,
-  GitHubTreeItem,
-  TreeNode,
-  VaultConnection,
-} from '@/types/Vault';
+import type { ApiError, GitHubTreeItem, TreeNode, VaultConnection } from '@/types/Vault';
 
 /**
  * @description Vault ストアの状態とアクションの型定義
@@ -70,9 +65,7 @@ export const useVaultStore = create<VaultStore>()(
           const treeResponse = await fetchTree(connection);
 
           // blob（ファイル）のみを抽出する（ディレクトリは除外）
-          const blobItems = treeResponse.tree.filter(
-            (item) => item.type === 'blob',
-          );
+          const blobItems = treeResponse.tree.filter((item) => item.type === 'blob');
 
           // フラットなパス一覧をネスト構造に変換する
           const nested = buildNestedTree(blobItems);
@@ -89,10 +82,7 @@ export const useVaultStore = create<VaultStore>()(
         } catch (error: unknown) {
           // エラーをストアに設定する
           const apiError: ApiError =
-            typeof error === 'object' &&
-            error !== null &&
-            'type' in error &&
-            'message' in error
+            typeof error === 'object' && error !== null && 'type' in error && 'message' in error
               ? (error as ApiError)
               : {
                   type: 'unknown',
@@ -136,7 +126,6 @@ export const useVaultStore = create<VaultStore>()(
         nestedTree: state.nestedTree,
         isConnected: state.isConnected,
       }),
-    }
-  )
+    },
+  ),
 );
-

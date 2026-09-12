@@ -47,7 +47,10 @@ export const NoteContent = ({ filePath }: NoteContentProps) => {
 
   // ファイルパスからノートタイトルを生成する
   const noteTitle = filePath
-    ? decodeURIComponent(filePath).split('/').pop()?.replace(/\.(md|markdown)$/, '') ?? decodeURIComponent(filePath)
+    ? (decodeURIComponent(filePath)
+        .split('/')
+        .pop()
+        ?.replace(/\.(md|markdown)$/, '') ?? decodeURIComponent(filePath))
     : null;
 
   // ノートが選択されていない場合のウェルカム画面
@@ -117,10 +120,7 @@ export const NoteContent = ({ filePath }: NoteContentProps) => {
       <AnalyticsPanel filePath={filePath} className="mb-4" />
 
       {/* フロントマターパネル */}
-      <FrontmatterPanel
-        frontmatter={parsedNote.frontmatter}
-        className="mb-6"
-      />
+      <FrontmatterPanel frontmatter={parsedNote.frontmatter} className="mb-6" />
 
       {/* Markdown 本文レンダリング */}
       <ErrorBoundary>

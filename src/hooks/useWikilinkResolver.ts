@@ -43,9 +43,7 @@ export const useWikilinkResolver = () => {
       // パスにスラッシュが含まれる場合は完全パス一致で照合する
       if (target.includes('/')) {
         // 完全一致を試みる
-        const exactMatch = allPaths.find(
-          (p) => p.toLowerCase() === target.toLowerCase(),
-        );
+        const exactMatch = allPaths.find((p) => p.toLowerCase() === target.toLowerCase());
         if (exactMatch) return exactMatch;
       }
 
@@ -63,8 +61,7 @@ export const useWikilinkResolver = () => {
           // 同名ファイルが複数ある場合: 最も浅い階層を優先する
           // 明示的ルール: パスの `/` の数が最も少ないファイルを選択する
           return matches.sort(
-            (a, b) =>
-              (a.match(/\//g)?.length ?? 0) - (b.match(/\//g)?.length ?? 0),
+            (a, b) => (a.match(/\//g)?.length ?? 0) - (b.match(/\//g)?.length ?? 0),
           )[0];
         }
       }
@@ -79,16 +76,13 @@ export const useWikilinkResolver = () => {
 
       if (matches.length > 0) {
         // Markdown ファイルを優先する
-        const mdMatches = matches.filter(
-          (p) => p.endsWith('.md') || p.endsWith('.markdown'),
-        );
+        const mdMatches = matches.filter((p) => p.endsWith('.md') || p.endsWith('.markdown'));
         const targetMatches = mdMatches.length > 0 ? mdMatches : matches;
 
         // 同名ファイルが複数ある場合: 最も浅い階層を優先する
         // 明示的ルール: パスの `/` の数が最も少ないファイルを選択する
         return targetMatches.sort(
-          (a, b) =>
-            (a.match(/\//g)?.length ?? 0) - (b.match(/\//g)?.length ?? 0),
+          (a, b) => (a.match(/\//g)?.length ?? 0) - (b.match(/\//g)?.length ?? 0),
         )[0];
       }
 

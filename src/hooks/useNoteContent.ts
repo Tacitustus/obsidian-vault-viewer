@@ -57,10 +57,7 @@ export const useNoteContent = (filePath: string | null) => {
     } catch (err: unknown) {
       // エラーを設定する
       const apiError: ApiError =
-        typeof err === 'object' &&
-        err !== null &&
-        'type' in err &&
-        'message' in err
+        typeof err === 'object' && err !== null && 'type' in err && 'message' in err
           ? (err as ApiError)
           : {
               type: 'unknown',

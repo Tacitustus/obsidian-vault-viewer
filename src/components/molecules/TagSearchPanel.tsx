@@ -78,9 +78,7 @@ export const TagSearchPanel = ({ onSelectFile }: TagSearchPanelProps) => {
     return (
       <div className="flex flex-col items-center justify-center py-8">
         <Spinner />
-        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          タグを収集中...
-        </p>
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">タグを収集中...</p>
       </div>
     );
   }
@@ -90,9 +88,7 @@ export const TagSearchPanel = ({ onSelectFile }: TagSearchPanelProps) => {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <Tag className="w-6 h-6 text-gray-300 dark:text-gray-600 mb-2" />
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          タグが見つかりません
-        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">タグが見つかりません</p>
       </div>
     );
   }
@@ -119,9 +115,7 @@ export const TagSearchPanel = ({ onSelectFile }: TagSearchPanelProps) => {
             <span className="text-xs font-medium text-primary-700 dark:text-primary-300">
               #{selectedTag}
             </span>
-            <span className="text-[10px] text-gray-400">
-              ({taggedFiles.length} 件)
-            </span>
+            <span className="text-[10px] text-gray-400">({taggedFiles.length} 件)</span>
             <button
               className="ml-auto text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               onClick={clearSelectedTag}
@@ -134,7 +128,11 @@ export const TagSearchPanel = ({ onSelectFile }: TagSearchPanelProps) => {
           <div className="overflow-y-auto max-h-[300px]">
             {taggedFiles.map((filePath) => {
               // ファイル名を取得する
-              const fileName = filePath.split('/').pop()?.replace(/\.(md|markdown)$/, '') ?? filePath;
+              const fileName =
+                filePath
+                  .split('/')
+                  .pop()
+                  ?.replace(/\.(md|markdown)$/, '') ?? filePath;
 
               return (
                 <button
@@ -157,10 +155,7 @@ export const TagSearchPanel = ({ onSelectFile }: TagSearchPanelProps) => {
         <div className="p-3 flex flex-wrap gap-1.5 overflow-y-auto max-h-[300px]">
           {filteredTags.map((tag) => (
             <div key={tag} className="flex items-center gap-0.5">
-              <Badge
-                tag={tag}
-                onClick={() => handleTagClick(tag)}
-              />
+              <Badge tag={tag} onClick={() => handleTagClick(tag)} />
               <span className="text-[9px] text-gray-400 dark:text-gray-500">
                 {tagCounts.get(tag) ?? 0}
               </span>

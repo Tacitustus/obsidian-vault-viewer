@@ -87,9 +87,7 @@ const buildApiError = (response: Response): ApiError => {
  * @returns {Promise<GitHubTreeResponse>} ファイルツリーレスポンス
  * @throws {ApiError} API エラー発生時
  */
-export const fetchTree = async (
-  connection: VaultConnection,
-): Promise<GitHubTreeResponse> => {
+export const fetchTree = async (connection: VaultConnection): Promise<GitHubTreeResponse> => {
   // キャッシュキーを生成する
   const cacheKey = `${connection.owner}/${connection.repo}/${connection.branch}`;
 
@@ -111,8 +109,7 @@ export const fetchTree = async (
     // ネットワークエラーの場合
     throw new GitHubApiErrorClass({
       type: 'network',
-      message:
-        'ネットワークエラーが発生しました。インターネット接続を確認してください。',
+      message: 'ネットワークエラーが発生しました。インターネット接続を確認してください。',
     });
   }
 
@@ -165,8 +162,7 @@ export const fetchFileContent = async (
     // ネットワークエラーの場合
     throw new GitHubApiErrorClass({
       type: 'network',
-      message:
-        'ネットワークエラーが発生しました。インターネット接続を確認してください。',
+      message: 'ネットワークエラーが発生しました。インターネット接続を確認してください。',
     });
   }
 
@@ -214,10 +210,7 @@ export const decodeBase64Content = (base64Content: string): string => {
  * @param {string} filePath - ファイルパス
  * @returns {string} 画像の表示用URL（公開リポジトリの場合）
  */
-export const buildRawImageUrl = (
-  connection: VaultConnection,
-  filePath: string,
-): string => {
+export const buildRawImageUrl = (connection: VaultConnection, filePath: string): string => {
   return `https://raw.githubusercontent.com/${connection.owner}/${connection.repo}/${connection.branch}/${filePath}`;
 };
 
@@ -228,9 +221,7 @@ export const buildRawImageUrl = (
  * @param {GitHubFileContent} fileContent - GitHub Contents API レスポンス
  * @returns {string} data: URL 形式の画像データ
  */
-export const buildBase64ImageUrl = (
-  fileContent: GitHubFileContent,
-): string => {
+export const buildBase64ImageUrl = (fileContent: GitHubFileContent): string => {
   // ファイル名から MIME タイプを推定する
   const extension = fileContent.name.split('.').pop()?.toLowerCase() ?? '';
   const mimeTypes: Record<string, string> = {

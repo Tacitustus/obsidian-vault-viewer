@@ -50,4 +50,3 @@ export const TagList = ({ tags, className = '' }: TagListProps) => {
     </div>
   );
 };
-

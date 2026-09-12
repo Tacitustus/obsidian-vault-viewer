@@ -86,7 +86,7 @@ export const useFileTree = () => {
           (allowed) =>
             node.path === allowed ||
             node.path.startsWith(`${allowed}/`) ||
-            allowed.startsWith(`${node.path}/`) // 親フォルダは展開のために残す
+            allowed.startsWith(`${node.path}/`), // 親フォルダは展開のために残す
         );
 
         if (isAllowedPath) {
@@ -94,7 +94,7 @@ export const useFileTree = () => {
             const filteredChildren = filterBySettings(node.children);
             // サブフォルダが残っていれば追加、または自身が許可されたフォルダの配下なら全て追加
             const isSelfOrDescendant = sidebarFolders.some(
-              (allowed) => node.path === allowed || node.path.startsWith(`${allowed}/`)
+              (allowed) => node.path === allowed || node.path.startsWith(`${allowed}/`),
             );
             if (isSelfOrDescendant) {
               result.push(node);
@@ -166,7 +166,9 @@ export const useFileTree = () => {
       }
 
       // 2. 本文検索のために全Markdownファイルを対象とする
-      const mdFiles = flatTree.filter((item) => item.path.endsWith('.md') || item.path.endsWith('.markdown'));
+      const mdFiles = flatTree.filter(
+        (item) => item.path.endsWith('.md') || item.path.endsWith('.markdown'),
+      );
       const contentMatchedPaths = new Set<string>();
       // ファイルパス → スニペットのマップ
       const snippetMap = new Map<string, string>();
@@ -186,7 +188,7 @@ export const useFileTree = () => {
             // エラー時はスキップ
           }
         });
-        
+
         await Promise.all(fetchPromises);
       } catch (error: unknown) {
         console.error(error);
@@ -253,7 +255,6 @@ export const useFileTree = () => {
 
       setFilteredTree(combinedFilter(baseTree));
       setSearchResults(allResults);
-
     }, 500); // 500ms デバウンス
 
     return () => {

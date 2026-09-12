@@ -34,10 +34,7 @@ interface ErrorBoundaryState {
   errorMessage: string;
 }
 
-export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, errorMessage: '' };
@@ -65,10 +62,7 @@ export class ErrorBoundary extends Component<
       // デフォルトのエラーメッセージを表示する
       return (
         <div className="p-6">
-          <ErrorMessage
-            message={this.state.errorMessage}
-            type="error"
-          />
+          <ErrorMessage message={this.state.errorMessage} type="error" />
         </div>
       );
     }

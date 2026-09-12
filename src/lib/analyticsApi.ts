@@ -66,10 +66,7 @@ export interface AnalyticsFilter {
  * @param {string} repoKey - リポジトリキー（"owner/repo" 形式）
  * @param {string} filePath - ファイルパス
  */
-export const recordNoteView = async (
-  repoKey: string,
-  filePath: string,
-): Promise<void> => {
+export const recordNoteView = async (repoKey: string, filePath: string): Promise<void> => {
   if (!supabase) return;
 
   try {
@@ -92,14 +89,12 @@ export const recordNoteView = async (
         .eq('id', existing.id);
     } else {
       // 新規レコードを挿入する
-      await supabase
-        .from('note_views')
-        .insert({
-          repo_key: repoKey,
-          file_path: filePath,
-          view_count: 1,
-          last_viewed_at: new Date().toISOString(),
-        });
+      await supabase.from('note_views').insert({
+        repo_key: repoKey,
+        file_path: filePath,
+        view_count: 1,
+        last_viewed_at: new Date().toISOString(),
+      });
     }
   } catch (error: unknown) {
     console.error('閲覧記録の保存に失敗しました:', error);
@@ -112,9 +107,7 @@ export const recordNoteView = async (
  * @param {string} repoKey - リポジトリキー
  * @returns {Promise<NoteViewRecord[]>} 閲覧データ配列
  */
-export const fetchAllAnalytics = async (
-  repoKey: string,
-): Promise<NoteViewRecord[]> => {
+export const fetchAllAnalytics = async (repoKey: string): Promise<NoteViewRecord[]> => {
   if (!supabase) return [];
 
   try {
@@ -262,9 +255,7 @@ export const saveAnalyticsFilter = async (
  * @param {string} repoKey - リポジトリキー
  * @returns {Promise<AnalyticsFilter[]>} フィルタ設定配列
  */
-export const fetchAnalyticsFilters = async (
-  repoKey: string,
-): Promise<AnalyticsFilter[]> => {
+export const fetchAnalyticsFilters = async (repoKey: string): Promise<AnalyticsFilter[]> => {
   if (!supabase) return [];
 
   try {
@@ -291,16 +282,11 @@ export const fetchAnalyticsFilters = async (
  *
  * @param {number} filterId - フィルタ設定ID
  */
-export const deleteAnalyticsFilter = async (
-  filterId: number,
-): Promise<void> => {
+export const deleteAnalyticsFilter = async (filterId: number): Promise<void> => {
   if (!supabase) return;
 
   try {
-    await supabase
-      .from('analytics_filters')
-      .delete()
-      .eq('id', filterId);
+    await supabase.from('analytics_filters').delete().eq('id', filterId);
   } catch (error: unknown) {
     console.error('フィルタ設定の削除に失敗しました:', error);
   }

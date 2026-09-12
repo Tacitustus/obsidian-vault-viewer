@@ -185,10 +185,7 @@ const parseYamlValue = (value: string): string => {
  * @param {string} body - Markdown 本文
  * @returns {string[]} 重複除去されたタグ一覧
  */
-const extractTags = (
-  frontmatter: FrontmatterData,
-  body: string,
-): string[] => {
+const extractTags = (frontmatter: FrontmatterData, body: string): string[] => {
   const tagSet = new Set<string>();
 
   // フロントマターからタグを取得する

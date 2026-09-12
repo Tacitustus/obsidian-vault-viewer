@@ -21,16 +21,7 @@ export const getFileType = (fileName: string): FileType => {
   }
 
   // 画像ファイルの判定
-  const imageExtensions = [
-    'png',
-    'jpg',
-    'jpeg',
-    'gif',
-    'svg',
-    'webp',
-    'bmp',
-    'ico',
-  ];
+  const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico'];
   if (imageExtensions.includes(extension)) {
     return 'image';
   }
@@ -86,9 +77,7 @@ export const buildNestedTree = (items: GitHubTreeItem[]): TreeNode[] => {
       const currentPath = segments.slice(0, i + 1).join('/');
 
       // 既存の子ノードを探す
-      const existingChild = currentNode.children.find(
-        (child) => child.name === segment,
-      );
+      const existingChild = currentNode.children.find((child) => child.name === segment);
 
       if (existingChild) {
         // 既存のノードが見つかったら、そこを辿る
@@ -99,10 +88,7 @@ export const buildNestedTree = (items: GitHubTreeItem[]): TreeNode[] => {
           name: segment,
           path: currentPath,
           isDirectory: !isLastSegment || item.type === 'tree',
-          fileType:
-            isLastSegment && item.type === 'blob'
-              ? getFileType(segment)
-              : undefined,
+          fileType: isLastSegment && item.type === 'blob' ? getFileType(segment) : undefined,
           children: [],
         };
 

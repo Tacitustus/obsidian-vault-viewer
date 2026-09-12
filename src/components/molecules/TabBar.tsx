@@ -28,16 +28,12 @@ interface TabBarProps {
   onContextMenu: (e: React.MouseEvent, tabId: string) => void;
 }
 
-export const TabBar = ({
-  paneId,
-  tabs,
-  activeTabId,
-  onContextMenu,
-}: TabBarProps) => {
+export const TabBar = ({ paneId, tabs, activeTabId, onContextMenu }: TabBarProps) => {
   // タブストアからアクションを取得する
   const setActiveTab = useTabStore((state) => state.setActiveTab);
   const closeTab = useTabStore((state) => state.closeTab);
   const setActivePane = useTabStore((state) => state.setActivePane);
+  const reorderTab = useTabStore((state) => state.reorderTab);
 
   // タブクリック時のハンドラー
   const handleTabClick = (tabId: string) => {
@@ -60,18 +56,78 @@ export const TabBar = ({
     }
   };
 
-  // タブが0件の場合は何も表示しない
-  if (tabs.length === 0) return null;
+  // ドラッグ開始
+  const handleDragStart = (e: React.DragEvent, tabId: string) => {
+    e.dataTransfer.setData('application/json', JSON.stringify({ tabId, sourcePaneId: paneId }));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  // コンテナへのドラッグオーバー（末尾への追加用）
+  const handleContainerDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  // コンテナへのドロップ（末尾へ追加）
+  const handleContainerDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('application/json')) as { tabId?: string; sourcePaneId?: string };
+      if (data.tabId && data.sourcePaneId) {
+        reorderTab(data.tabId, data.sourcePaneId, paneId, tabs.length);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // タブ上へのドロップ
+  const handleTabDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation(); // コンテナのドロップイベントをトリガーしないようにする
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('application/json')) as { tabId?: string; sourcePaneId?: string };
+      if (data.tabId && data.sourcePaneId) {
+        // 現在のタブの半分より右側でドロップされたら後ろに、左側なら前に挿入する判定も可能だが、
+        // 簡易的にドロップされたタブのインデックスの位置に挿入する。
+        reorderTab(data.tabId, data.sourcePaneId, paneId, targetIndex);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // タブが0件の場合は空のタブバー領域を表示する（ドロップ可能にするため）
+  if (tabs.length === 0) {
+    return (
+      <div
+        className="flex items-center bg-gray-50 dark:bg-gray-900 border-b border-gray-200/50 dark:border-gray-700/50 overflow-x-auto h-9"
+        onDragOver={handleContainerDragOver}
+        onDrop={handleContainerDrop}
+      />
+    );
+  }
 
   return (
-    <div className="flex items-center bg-gray-50 dark:bg-gray-900 border-b border-gray-200/50 dark:border-gray-700/50 overflow-x-auto scrollbar-thin">
-      {tabs.map((tab) => {
+    <div
+      className="flex items-center bg-gray-50 dark:bg-gray-900 border-b border-gray-200/50 dark:border-gray-700/50 overflow-x-auto scrollbar-thin"
+      onDragOver={handleContainerDragOver}
+      onDrop={handleContainerDrop}
+    >
+      {tabs.map((tab, index) => {
         // アクティブタブかどうかを判定する
         const isActive = tab.id === activeTabId;
 
         return (
           <div
             key={tab.id}
+            draggable
+            onDragStart={(e) => handleDragStart(e, tab.id)}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+            }}
+            onDrop={(e) => handleTabDrop(e, index)}
             className={`group flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-r border-gray-200/30 dark:border-gray-700/30 cursor-pointer select-none transition-all duration-150 min-w-0 max-w-[180px] ${
               isActive
                 ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-b-2 border-b-primary-500'

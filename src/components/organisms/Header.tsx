@@ -28,9 +28,7 @@ export const Header = () => {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center shadow-lg shadow-primary-500/25 group-hover:shadow-primary-500/40 transition-shadow duration-200">
               <BookOpen className="w-4 h-4 text-white" />
             </div>
-            <span className="text-lg font-bold text-gray-900 dark:text-white">
-              Vault Viewer
-            </span>
+            <span className="text-lg font-bold text-gray-900 dark:text-white">Vault Viewer</span>
           </Link>
 
           {/* 右側のアクションエリア */}
@@ -40,17 +38,9 @@ export const Header = () => {
               variant="ghost"
               size="sm"
               onClick={toggleDarkMode}
-              aria-label={
-                isDarkMode
-                  ? 'ライトモードに切り替え'
-                  : 'ダークモードに切り替え'
-              }
+              aria-label={isDarkMode ? 'ライトモードに切り替え' : 'ダークモードに切り替え'}
             >
-              {isDarkMode ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
-              )}
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
           </div>
         </div>

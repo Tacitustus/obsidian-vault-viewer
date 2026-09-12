@@ -27,10 +27,7 @@ interface ConnectionFormProps {
   isLoading: boolean;
 }
 
-export const ConnectionForm = ({
-  onConnect,
-  isLoading,
-}: ConnectionFormProps) => {
+export const ConnectionForm = ({ onConnect, isLoading }: ConnectionFormProps) => {
   // フォームの入力値を管理する（初期値をローカルストレージから取得）
   const [owner, setOwner] = useState(() => localStorage.getItem('vault_owner') || '');
   const [repo, setRepo] = useState(() => localStorage.getItem('vault_repo') || '');
@@ -128,8 +125,8 @@ export const ConnectionForm = ({
       {/* トークンに関する注意書き */}
       <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
         トークンなどの接続情報はブラウザのローカルストレージに保存され、サーバーへの送信は行われません。
-        プライベートリポジトリの閲覧や API レート制限の緩和に使用します。
-        fine-grained token で Contents: Read only の権限を推奨します。
+        プライベートリポジトリの閲覧や API レート制限の緩和に使用します。 fine-grained token で
+        Contents: Read only の権限を推奨します。
       </p>
 
       {/* 接続ボタン */}

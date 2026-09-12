@@ -29,12 +29,7 @@ interface TreeNodeItemProps {
   onSelectFile: (path: string) => void;
 }
 
-export const TreeNodeItem = ({
-  node,
-  depth,
-  selectedPath,
-  onSelectFile,
-}: TreeNodeItemProps) => {
+export const TreeNodeItem = ({ node, depth, selectedPath, onSelectFile }: TreeNodeItemProps) => {
   // ディレクトリの展開状態を管理する（デフォルトは最上位のみ展開）
   const [isExpanded, setIsExpanded] = useState(depth === 0);
 
@@ -90,11 +85,7 @@ export const TreeNodeItem = ({
         )}
 
         {/* ファイル/ディレクトリアイコン */}
-        <FileIcon
-          fileType={node.fileType}
-          isDirectory={node.isDirectory}
-          isExpanded={isExpanded}
-        />
+        <FileIcon fileType={node.fileType} isDirectory={node.isDirectory} isExpanded={isExpanded} />
 
         {/* ノード名 */}
         <span className="truncate">{node.name}</span>

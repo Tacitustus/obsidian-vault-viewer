@@ -58,4 +58,3 @@ export const Badge = ({ tag, onClick, className = '' }: BadgeProps) => {
     </span>
   );
 };
-

@@ -13,7 +13,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, X, FileText, AlignLeft, Tag, Settings } from 'lucide-react';
+import { Search, X, Tag, Settings } from 'lucide-react';
 
 import { useFileTree } from '@/hooks/useFileTree';
 import { useSearchStore } from '@/stores/searchStore';
@@ -35,11 +35,7 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-export const Sidebar = ({
-  onSelectFile,
-  isOpen,
-  onClose,
-}: SidebarProps) => {
+export const Sidebar = ({ onSelectFile, isOpen, onClose }: SidebarProps) => {
   // ファイルツリーフックから検索機能とフィルタ済みツリーを取得する
   const { filteredTree, searchQuery, setSearchQuery, searchResults } = useFileTree();
 
@@ -68,10 +64,7 @@ export const Sidebar = ({
   const searchContainerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(e.target as Node)
-      ) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
         setShowSearchOptions(false);
         setSearchFocused(false);
       }
@@ -81,24 +74,27 @@ export const Sidebar = ({
   }, [setSearchFocused]);
 
   // ファイル選択時にモバイルではサイドバーを閉じる
-  const handleSelectFile = useCallback((path: string) => {
-    onSelectFile(path);
-    onClose();
-  }, [onSelectFile, onClose]);
+  const handleSelectFile = useCallback(
+    (path: string) => {
+      onSelectFile(path);
+      onClose();
+    },
+    [onSelectFile, onClose],
+  );
 
   // 検索窓フォーカス時のハンドラー
   const handleSearchFocus = () => {
     setSearchFocused(true);
-    setShowSearchOptions(true);
+    if (!searchQuery.trim()) {
+      setShowSearchOptions(true);
+    }
   };
 
   // 検索モードのアイコンを取得する
   const getSearchModeIcon = () => {
     switch (searchMode) {
-      case 'filename':
-        return <FileText className="w-4 h-4 text-blue-400" />;
-      case 'content':
-        return <AlignLeft className="w-4 h-4 text-green-400" />;
+      case 'search':
+        return <Search className="w-4 h-4 text-blue-400" />;
       case 'tag':
         return <Tag className="w-4 h-4 text-purple-400" />;
     }
@@ -107,17 +103,13 @@ export const Sidebar = ({
   // 検索モードのプレースホルダーを取得する
   const getSearchPlaceholder = () => {
     switch (searchMode) {
-      case 'filename':
-        return 'ファイル名で検索...';
-      case 'content':
-        return 'ノート内容で検索...';
+      case 'search':
+        return 'ファイルや内容で検索...';
       case 'tag':
         return 'タグを選択...';
     }
   };
 
-  // 検索結果の有無を判定する
-  const hasSearchResults = searchQuery.trim() && searchResults.length > 0;
   // タグ検索モードかつタグ選択済みか
   const isTagSearchActive = searchMode === 'tag';
 
@@ -176,7 +168,9 @@ export const Sidebar = ({
           {/* フォルダ絞り込みパネル */}
           {showSettings && (
             <div className="p-2 bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-gray-200/50 dark:border-gray-700/50 mb-1">
-              <div className="text-[10px] font-medium text-gray-500 mb-1 px-1">表示するフォルダを絞り込む</div>
+              <div className="text-[10px] font-medium text-gray-500 mb-1 px-1">
+                表示するフォルダを絞り込む
+              </div>
               <FolderSelector
                 folderPaths={(() => {
                   const folders: string[] = [];
@@ -217,7 +211,13 @@ export const Sidebar = ({
               value={isTagSearchActive && selectedTag ? `#${selectedTag}` : searchQuery}
               onChange={(e) => {
                 if (!isTagSearchActive) {
-                  setSearchQuery(e.target.value);
+                  const val = e.target.value;
+                  setSearchQuery(val);
+                  if (val.trim().length > 0) {
+                    setShowSearchOptions(false);
+                  } else if (useSearchStore.getState().isSearchFocused) {
+                    setShowSearchOptions(true);
+                  }
                 }
               }}
               onFocus={handleSearchFocus}
@@ -247,9 +247,7 @@ export const Sidebar = ({
 
             {/* 検索オプションパネル */}
             {showSearchOptions && !isTagSearchActive && (
-              <SearchOptions
-                onClose={() => setShowSearchOptions(false)}
-              />
+              <SearchOptions onClose={() => setShowSearchOptions(false)} />
             )}
           </div>
         </div>
@@ -259,23 +257,34 @@ export const Sidebar = ({
           {/* タグ検索モード: タグ検索パネルを表示 */}
           {isTagSearchActive ? (
             <TagSearchPanel onSelectFile={handleSelectFile} />
-          ) : hasSearchResults && searchMode !== 'filename' ? (
+          ) : searchQuery.trim().length > 0 ? (
             /* 検索結果リスト（コンテンツ検索モード or 混合検索結果がある場合） */
             <div className="p-2">
-              {/* 検索結果ヘッダー */}
-              <div className="px-2 py-1 mb-1">
-                <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-                  検索結果 ({searchResults.length}件)
-                </span>
-              </div>
-              {searchResults.map((result) => (
-                <SearchResultItem
-                  key={result.filePath}
-                  result={result}
-                  onSelectFile={handleSelectFile}
-                  searchQuery={searchQuery}
-                />
-              ))}
+              {searchResults.length > 0 ? (
+                <>
+                  {/* 検索結果ヘッダー */}
+                  <div className="px-2 py-1 mb-1">
+                    <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                      検索結果 ({searchResults.length}件)
+                    </span>
+                  </div>
+                  {searchResults.map((result) => (
+                    <SearchResultItem
+                      key={result.filePath}
+                      result={result}
+                      onSelectFile={handleSelectFile}
+                      searchQuery={searchQuery}
+                    />
+                  ))}
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Search className="w-6 h-6 text-gray-300 dark:text-gray-600 mb-2" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    一致するファイルが見つかりません
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             /* 通常のツリー表示 */
@@ -310,4 +319,3 @@ export const Sidebar = ({
     </>
   );
 };
-

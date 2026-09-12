@@ -11,7 +11,7 @@
  * ```
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, Fragment } from 'react';
 import { Panel, Group, Separator } from 'react-resizable-panels';
 
 import { useTabStore } from '@/stores/tabStore';
@@ -87,21 +87,12 @@ const SplitPaneRenderer = ({
   onContextMenu: (e: React.MouseEvent, tabId: string, paneId: string) => void;
 }) => {
   return (
-    <Group
-      orientation={pane.direction}
-      className="h-full"
-    >
+    <Group orientation={pane.direction} className="h-full">
       {pane.children.map((child, index) => (
-        <div key={child.id} className="contents">
+        <Fragment key={child.id}>
           {/* パネル */}
-          <Panel
-            defaultSize={`${String(pane.sizes[index])}%`}
-            minSize={50}
-          >
-            <PaneNodeRenderer
-              node={child}
-              onContextMenu={onContextMenu}
-            />
+          <Panel defaultSize={`${String(pane.sizes[index])}%`} minSize={50}>
+            <PaneNodeRenderer node={child} onContextMenu={onContextMenu} />
           </Panel>
 
           {/* リサイズハンドル（最後の子以外に表示） */}
@@ -112,7 +103,7 @@ const SplitPaneRenderer = ({
               } bg-gray-200/50 dark:bg-gray-700/50 hover:bg-primary-400/50 dark:hover:bg-primary-500/50 transition-colors duration-150`}
             />
           )}
-        </div>
+        </Fragment>
       ))}
     </Group>
   );
@@ -145,18 +136,15 @@ export const PaneContainer = () => {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
   // コンテキストメニューを表示するハンドラー
-  const handleContextMenu = useCallback(
-    (e: React.MouseEvent, tabId: string, paneId: string) => {
-      e.preventDefault();
-      setContextMenu({
-        x: e.clientX,
-        y: e.clientY,
-        tabId,
-        paneId,
-      });
-    },
-    [],
-  );
+  const handleContextMenu = useCallback((e: React.MouseEvent, tabId: string, paneId: string) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      tabId,
+      paneId,
+    });
+  }, []);
 
   // コンテキストメニューを閉じるハンドラー
   const handleCloseContextMenu = useCallback(() => {
@@ -166,10 +154,7 @@ export const PaneContainer = () => {
   return (
     <div className="h-full relative">
       {/* ペインツリーのレンダリング */}
-      <PaneNodeRenderer
-        node={rootPane}
-        onContextMenu={handleContextMenu}
-      />
+      <PaneNodeRenderer node={rootPane} onContextMenu={handleContextMenu} />
 
       {/* コンテキストメニュー */}
       {contextMenu && (

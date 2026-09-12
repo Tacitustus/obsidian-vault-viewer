@@ -256,7 +256,11 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
     // ヒートマップノードに変換する
     return filtered.map((entry) => ({
       filePath: entry.filePath,
-      name: entry.filePath.split('/').pop()?.replace(/\.(md|markdown)$/, '') ?? entry.filePath,
+      name:
+        entry.filePath
+          .split('/')
+          .pop()
+          ?.replace(/\.(md|markdown)$/, '') ?? entry.filePath,
       viewCount: entry.viewCount,
       heatValue: entry.viewCount / maxCount,
     }));

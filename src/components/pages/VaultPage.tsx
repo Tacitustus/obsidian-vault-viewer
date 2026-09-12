@@ -89,10 +89,7 @@ export const VaultPage = () => {
       </h1>
 
       {/* フロントマターパネル */}
-      <FrontmatterPanel
-        frontmatter={parsedNote.frontmatter}
-        className="mb-6"
-      />
+      <FrontmatterPanel frontmatter={parsedNote.frontmatter} className="mb-6" />
 
       {/* Markdown 本文レンダリング */}
       <ErrorBoundary>

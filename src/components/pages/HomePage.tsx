@@ -28,20 +28,17 @@ const FEATURE_CARDS = [
   {
     icon: <FolderTree className="w-6 h-6 text-yellow-500" />,
     title: 'フォルダツリー',
-    description:
-      'リポジトリ内の全ファイルを階層構造で表示。折りたたみ・検索に対応。',
+    description: 'リポジトリ内の全ファイルを階層構造で表示。折りたたみ・検索に対応。',
   },
   {
     icon: <Link2 className="w-6 h-6 text-primary-500" />,
     title: 'Wikilink 解決',
-    description:
-      '[[wikilink]] や ![[embed]] を自動解決し、ノート間をシームレスにナビゲート。',
+    description: '[[wikilink]] や ![[embed]] を自動解決し、ノート間をシームレスにナビゲート。',
   },
   {
     icon: <Eye className="w-6 h-6 text-green-500" />,
     title: 'Markdown レンダリング',
-    description:
-      'GFM（表、タスクリスト）やフロントマター、タグに対応した高品質なレンダリング。',
+    description: 'GFM（表、タスクリスト）やフロントマター、タグに対応した高品質なレンダリング。',
   },
 ];
 
@@ -114,10 +111,7 @@ export const HomePage = () => {
             )}
 
             {/* 接続フォーム */}
-            <ConnectionForm
-              onConnect={(conn) => void handleConnect(conn)}
-              isLoading={isLoading}
-            />
+            <ConnectionForm onConnect={(conn) => void handleConnect(conn)} isLoading={isLoading} />
           </div>
         </div>
 
