@@ -22,6 +22,7 @@ import {
   deleteAnalyticsFilter,
 } from '@/lib/analyticsApi';
 import { isSupabaseEnabled } from '@/lib/supabaseClient';
+import { useVaultStore } from '@/stores/vaultStore';
 
 import type { NoteViewRecord, AnalyticsFilter, FilterOperator } from '@/lib/analyticsApi';
 
@@ -221,21 +222,32 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
   // ヒートマップデータを生成する
   getHeatMapData: (folderPaths?: string[], operator: FilterOperator = 'or'): HeatMapNode[] => {
     const state = get();
-    const maxCount = get().getMaxViewCount();
-    if (maxCount === 0) return [];
+    const maxCount = get().getMaxViewCount() || 1; // 0除算回避
+
+    // すべてのファイルのリストを取得する
+    const flatTree = useVaultStore.getState().flatTree;
+    const allFiles = flatTree.map((item) => item.path);
 
     // 閲覧データを収集する
-    const entries: Array<{ filePath: string; viewCount: number }> = [];
+    const viewCounts = new Map<string, number>();
 
     if (state.isEnabled) {
       state.analyticsMap.forEach((record) => {
-        entries.push({ filePath: record.file_path, viewCount: record.view_count });
+        viewCounts.set(record.file_path, record.view_count);
       });
     } else {
       state.memoryViewCounts.forEach((count, filePath) => {
-        entries.push({ filePath, viewCount: count });
+        viewCounts.set(filePath, count);
       });
     }
+
+    // 全Markdownファイルに対してエントリを作成（閲覧がないものは0回とする）
+    const entries = allFiles
+      .filter((filePath) => filePath.endsWith('.md') || filePath.endsWith('.markdown'))
+      .map((filePath) => ({
+        filePath,
+        viewCount: viewCounts.get(filePath) ?? 0,
+      }));
 
     // フォルダフィルタを適用する
     let filtered = entries;

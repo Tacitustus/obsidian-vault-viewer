@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   Eye,
+  EyeOff,
   Flame,
   Plus,
   Trash2,
@@ -82,6 +83,7 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
   const [isExpanded, setIsExpanded] = useState(false);
   const [showRanking, setShowRanking] = useState(true);
   const [showHeatMap, setShowHeatMap] = useState(false);
+  const [showUnread, setShowUnread] = useState(false);
   const [showFilterEditor, setShowFilterEditor] = useState(false);
 
   // フィルタ編集用の状態
@@ -99,14 +101,14 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
     }
   }, [isExpanded, repoKey, isEnabled, loadAnalytics, loadTopNotes, loadFilters]);
 
-  // ヒートマップデータを取得する
+  // ヒートマップおよび未読データ（フィルタ適用済み）を取得する
   const heatMapData = useMemo((): HeatMapNode[] => {
-    if (!showHeatMap) return [];
+    if (!showHeatMap && !showUnread) return [];
     if (activeFilter) {
       return getHeatMapData(activeFilter.folder_paths, activeFilter.operator);
     }
     return getHeatMapData();
-  }, [showHeatMap, activeFilter, getHeatMapData]);
+  }, [showHeatMap, showUnread, activeFilter, getHeatMapData]);
 
   // フォルダパス一覧を取得する（フィルタ設定用）
   const folderPaths = useMemo(() => {
@@ -180,6 +182,7 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
               onClick={() => {
                 setShowRanking(true);
                 setShowHeatMap(false);
+                setShowUnread(false);
               }}
             >
               <Eye className="w-3 h-3 inline-block mr-0.5" />
@@ -194,10 +197,26 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
               onClick={() => {
                 setShowHeatMap(true);
                 setShowRanking(false);
+                setShowUnread(false);
               }}
             >
               <Flame className="w-3 h-3 inline-block mr-0.5" />
               ヒートマップ
+            </button>
+            <button
+              className={`flex-1 text-[10px] py-1 rounded-md transition-colors ${
+                showUnread
+                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                  : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+              onClick={() => {
+                setShowUnread(true);
+                setShowRanking(false);
+                setShowHeatMap(false);
+              }}
+            >
+              <EyeOff className="w-3 h-3 inline-block mr-0.5" />
+              未読
             </button>
           </div>
 
@@ -245,8 +264,8 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
             </div>
           )}
 
-          {/* ヒートマップ表示 */}
-          {showHeatMap && (
+          {/* フィルタUIとヒートマップ・未読表示 */}
+          {(showHeatMap || showUnread) && (
             <div className="space-y-2">
               {/* フィルタ切替 */}
               <div className="flex items-center gap-1 px-1">
@@ -319,49 +338,85 @@ export const AnalyticsDashboard = ({ onSelectFile }: AnalyticsDashboardProps) =>
               )}
 
               {/* ヒートマップ本体 */}
-              <div className="grid grid-cols-4 gap-1 p-1">
-                {heatMapData.length === 0 ? (
-                  <p className="col-span-4 text-[10px] text-gray-400 dark:text-gray-500 text-center py-3">
-                    閲覧データがありません
-                  </p>
-                ) : (
-                  heatMapData.map((node) => (
-                    <button
-                      key={node.filePath}
-                      className="relative aspect-square rounded-md overflow-hidden transition-transform duration-150 hover:scale-110 hover:z-10 group"
-                      style={{ backgroundColor: getHeatColor(node.heatValue) }}
-                      onClick={() => onSelectFile(node.filePath)}
-                      title={`${node.name} (${String(node.viewCount)}回)`}
-                    >
-                      {/* ファイル名オーバーレイ */}
-                      <div className="absolute inset-0 flex items-center justify-center p-0.5">
-                        <span className="text-[8px] font-medium text-white text-center leading-tight line-clamp-2 drop-shadow-sm">
-                          {node.name}
-                        </span>
-                      </div>
-                      {/* ホバー時の閲覧回数 */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[8px] text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {node.viewCount}回
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-
-              {/* 凡例 */}
-              {heatMapData.length > 0 && (
-                <div className="flex items-center gap-1 px-1">
-                  <span className="text-[9px] text-gray-400">少</span>
-                  <div className="flex-1 h-2 rounded-full overflow-hidden flex">
-                    {Array.from({ length: 10 }, (_, i) => (
-                      <div
-                        key={i}
-                        className="flex-1"
-                        style={{ backgroundColor: getHeatColor(i / 9) }}
-                      />
-                    ))}
+              {showHeatMap && (
+                <>
+                  <div className="grid grid-cols-4 gap-1 p-1">
+                    {heatMapData.length === 0 ? (
+                      <p className="col-span-4 text-[10px] text-gray-400 dark:text-gray-500 text-center py-3">
+                        閲覧データがありません
+                      </p>
+                    ) : (
+                      heatMapData.map((node) => (
+                        <button
+                          key={node.filePath}
+                          className="relative aspect-square rounded-md overflow-hidden transition-transform duration-150 hover:scale-110 hover:z-10 group"
+                          style={{ backgroundColor: getHeatColor(node.heatValue) }}
+                          onClick={() => onSelectFile(node.filePath)}
+                          title={`${node.name} (${String(node.viewCount)}回)`}
+                        >
+                          {/* ファイル名オーバーレイ */}
+                          <div className="absolute inset-0 flex items-center justify-center p-0.5">
+                            <span className="text-[8px] font-medium text-white text-center leading-tight line-clamp-2 drop-shadow-sm">
+                              {node.name}
+                            </span>
+                          </div>
+                          {/* ホバー時の閲覧回数 */}
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[8px] text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {node.viewCount}回
+                          </div>
+                        </button>
+                      ))
+                    )}
                   </div>
-                  <span className="text-[9px] text-gray-400">多</span>
+
+                  {/* 凡例 */}
+                  {heatMapData.length > 0 && (
+                    <div className="flex items-center gap-1 px-1">
+                      <span className="text-[9px] text-gray-400">少</span>
+                      <div className="flex-1 h-2 rounded-full overflow-hidden flex">
+                        {Array.from({ length: 10 }, (_, i) => (
+                          <div
+                            key={i}
+                            className="flex-1"
+                            style={{ backgroundColor: getHeatColor(i / 9) }}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-[9px] text-gray-400">多</span>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* 未読ノート一覧 */}
+              {showUnread && (
+                <div className="space-y-0.5 max-h-[300px] overflow-y-auto scrollbar-thin">
+                  {(() => {
+                    const unreadNotes = heatMapData.filter((n) => n.viewCount === 0);
+
+                    if (unreadNotes.length === 0) {
+                      return (
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center py-3">
+                          未読ノートはありません
+                        </p>
+                      );
+                    }
+
+                    return unreadNotes.map((note) => (
+                      <button
+                        key={note.filePath}
+                        className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-left hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors group"
+                        onClick={() => onSelectFile(note.filePath)}
+                      >
+                        <span className="text-[11px] text-gray-700 dark:text-gray-300 truncate flex-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                          {note.name}
+                        </span>
+                        <span className="text-[10px] text-primary-500 flex-shrink-0 bg-primary-50 dark:bg-primary-900/30 px-1.5 py-0.5 rounded">
+                          未読
+                        </span>
+                      </button>
+                    ));
+                  })()}
                 </div>
               )}
             </div>
