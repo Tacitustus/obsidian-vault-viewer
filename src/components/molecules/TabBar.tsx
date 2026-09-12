@@ -11,6 +11,7 @@
  * ```
  */
 
+import { useRef } from 'react';
 import { X, FileText } from 'lucide-react';
 
 import { useTabStore } from '@/stores/tabStore';
@@ -34,6 +35,9 @@ export const TabBar = ({ paneId, tabs, activeTabId, onContextMenu }: TabBarProps
   const closeTab = useTabStore((state) => state.closeTab);
   const setActivePane = useTabStore((state) => state.setActivePane);
   const reorderTab = useTabStore((state) => state.reorderTab);
+
+  // 長押し判定用タイマー
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // タブクリック時のハンドラー
   const handleTabClick = (tabId: string) => {
@@ -88,12 +92,42 @@ export const TabBar = ({ paneId, tabs, activeTabId, onContextMenu }: TabBarProps
     try {
       const data = JSON.parse(e.dataTransfer.getData('application/json')) as { tabId?: string; sourcePaneId?: string };
       if (data.tabId && data.sourcePaneId) {
-        // 現在のタブの半分より右側でドロップされたら後ろに、左側なら前に挿入する判定も可能だが、
-        // 簡易的にドロップされたタブのインデックスの位置に挿入する。
         reorderTab(data.tabId, data.sourcePaneId, paneId, targetIndex);
       }
     } catch {
       // ignore
+    }
+  };
+
+  // タップ開始時のハンドラー（長押し判定用）
+  const handleTouchStart = (e: React.TouchEvent, tabId: string) => {
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+    }
+    const touch = e.touches[0];
+    const clientX = touch.clientX;
+    const clientY = touch.clientY;
+
+    touchTimerRef.current = setTimeout(() => {
+      touchTimerRef.current = null;
+      // 長押しと判定されたらコンテキストメニューを開く
+      onContextMenu(
+        {
+          preventDefault: () => {},
+          stopPropagation: () => {},
+          clientX,
+          clientY,
+        } as unknown as React.MouseEvent,
+        tabId
+      );
+    }, 500); // 500msで長押し判定
+  };
+
+  // タップ終了・キャンセル時のハンドラー（長押しキャンセル用）
+  const handleTouchEndOrMove = () => {
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
     }
   };
 
@@ -145,6 +179,10 @@ export const TabBar = ({ paneId, tabs, activeTabId, onContextMenu }: TabBarProps
               e.preventDefault();
               onContextMenu(e, tab.id);
             }}
+            onTouchStart={(e) => handleTouchStart(e, tab.id)}
+            onTouchEnd={handleTouchEndOrMove}
+            onTouchCancel={handleTouchEndOrMove}
+            onTouchMove={handleTouchEndOrMove}
             role="tab"
             aria-selected={isActive}
             tabIndex={0}
