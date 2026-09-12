@@ -51,10 +51,16 @@ const LeafPaneRenderer = ({
 
   // ペインフォーカス
   const setActivePane = useTabStore((state) => state.setActivePane);
+  const activePaneId = useTabStore((state) => state.activePaneId);
+  const isActive = activePaneId === pane.id;
 
   return (
     <div
-      className="flex flex-col h-full"
+      className={`flex flex-col h-full transition-all duration-200 outline-none ${
+        isActive
+          ? 'ring-2 ring-inset ring-primary-500/50 dark:ring-primary-400/50'
+          : 'ring-1 ring-inset ring-transparent'
+      }`}
       onPointerDownCapture={() => setActivePane(pane.id)}
       onFocusCapture={() => setActivePane(pane.id)}
       role="tabpanel"

@@ -322,9 +322,8 @@ export const useTabStore = create<TabStore>((set, get) => ({
 
         // タブが全て閉じられた場合
         if (newTabs.length === 0) {
-          // 最も左上のペイン（最初のリーフペイン）の場合は空のペインを残す
-          const firstLeaf = findFirstLeafPane(prev.rootPane);
-          if (firstLeaf && firstLeaf.id === paneId) {
+          // もしこのペインがルートペイン全体（＝唯一のペイン）なら空のペインとして残す
+          if (prev.rootPane.type === 'leaf' && prev.rootPane.id === paneId) {
             return { ...paneToUpdate, tabs: [], activeTabId: null };
           }
           // それ以外のペインは削除する
@@ -406,31 +405,18 @@ export const useTabStore = create<TabStore>((set, get) => ({
             ? pane.tabs.find((t) => t.id === pane.activeTabId)
             : null;
 
-        // 新しいペインを作成する
+        // 新しいペインを作成する（元ペインのタブをクローンして残す）
         const newPaneId = nanoid();
+        const newTab = tabToMove ? { ...tabToMove, id: nanoid() } : null;
         const newPane: LeafPane = {
           type: 'leaf',
           id: newPaneId,
-          tabs: tabToMove ? [{ ...tabToMove }] : [],
-          activeTabId: tabToMove?.id ?? null,
+          tabs: newTab ? [newTab] : [],
+          activeTabId: newTab?.id ?? null,
         };
 
-        // 元のペインからタブを移動する場合
-        let originalPane = pane;
-        if (tabToMove) {
-          const remainingTabs = pane.tabs.filter((t) => t.id !== tabToMove.id);
-          const newActiveTabId =
-            remainingTabs.length > 0
-              ? pane.activeTabId === tabToMove.id
-                ? remainingTabs[0].id
-                : pane.activeTabId
-              : null;
-          originalPane = {
-            ...pane,
-            tabs: remainingTabs,
-            activeTabId: newActiveTabId,
-          };
-        }
+        // 元のペインはそのまま残す
+        const originalPane = pane;
 
         // 分割ペインを作成する
         const splitPane: SplitPane = {
@@ -554,8 +540,8 @@ export const useTabStore = create<TabStore>((set, get) => ({
         const newTabs = pane.tabs.filter((t) => t.id !== tabId);
 
         if (newTabs.length === 0) {
-          const firstLeaf = findFirstLeafPane(updated!);
-          if (firstLeaf && firstLeaf.id === sourcePaneId) {
+          // もしこのペインがルートペイン全体（＝唯一のペイン）なら空のペインとして残す
+          if (updated && updated.type === 'leaf' && updated.id === sourcePaneId) {
             return { ...pane, tabs: [], activeTabId: null };
           }
           return null;
