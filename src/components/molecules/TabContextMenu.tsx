@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Columns2, Rows2, X, XCircle } from 'lucide-react';
 
 import { useTabStore } from '@/stores/tabStore';
@@ -117,10 +118,10 @@ export const TabContextMenu = ({ x, y, tabId, paneId, onClose }: TabContextMenuP
   const adjustedX = Math.min(x, window.innerWidth - 200);
   const adjustedY = Math.min(y, window.innerHeight - 200);
 
-  return (
+  const menuContent = (
     <div
       ref={menuRef}
-      className="fixed z-[100] min-w-[180px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl shadow-black/10 dark:shadow-black/30 py-1 animate-fade-in"
+      className="fixed z-[9999] min-w-[180px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl shadow-black/10 dark:shadow-black/30 py-1 animate-fade-in"
       style={{ left: adjustedX, top: adjustedY }}
       role="menu"
     >
@@ -142,4 +143,6 @@ export const TabContextMenu = ({ x, y, tabId, paneId, onClose }: TabContextMenuP
       ))}
     </div>
   );
+
+  return createPortal(menuContent, document.body);
 };
