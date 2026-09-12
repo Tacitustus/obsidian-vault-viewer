@@ -54,7 +54,7 @@ export const TabContextMenu = ({ x, y, tabId, paneId, onClose }: TabContextMenuP
 
   // メニュー外クリック・Escape キーでメニューを閉じる
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: Event) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         onClose();
       }
@@ -66,12 +66,12 @@ export const TabContextMenu = ({ x, y, tabId, paneId, onClose }: TabContextMenuP
       }
     };
 
-    // イベントリスナーを登録する
-    document.addEventListener('mousedown', handleClickOutside);
+    // イベントリスナーを登録する (モバイルのsynthetic mousedownによる即時クローズを防ぐためpointerdownを使用)
+    document.addEventListener('pointerdown', handleClickOutside);
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('pointerdown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [onClose]);
