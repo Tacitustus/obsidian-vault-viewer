@@ -126,7 +126,7 @@ export const TabBar = ({ paneId, tabs, activeTabId, onContextMenu }: TabBarProps
         } as unknown as React.MouseEvent,
         tabId,
       );
-    }, 50); // 50msで長押し判定
+    }, 50); // 50msで判定（長押しだとUXが悪いため短く設定）
   };
 
   // タップ終了・キャンセル時のハンドラー（長押しキャンセル用）
@@ -207,6 +207,8 @@ export const TabBar = ({ paneId, tabs, activeTabId, onContextMenu }: TabBarProps
                   : 'opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-gray-300 dark:hover:bg-gray-700'
               }`}
               onClick={(e) => handleCloseTab(e, tab.id)}
+              onTouchStart={(e) => e.stopPropagation()} // 長押し判定イベントを親に伝播させない
+              onContextMenu={(e) => e.stopPropagation()}
               aria-label={`「${tab.title}」タブを閉じる`}
             >
               <X className="w-3 h-3" />
