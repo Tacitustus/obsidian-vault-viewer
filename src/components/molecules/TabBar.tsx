@@ -107,6 +107,9 @@ export const TabBar = ({ paneId, tabs, activeTabId, onContextMenu }: TabBarProps
 
   // タップ開始時のハンドラー（長押し判定用）
   const handleTouchStart = (e: React.TouchEvent, tabId: string) => {
+    // モバイル版では、非アクティブなタブをタップした際は「タブ切り替え」を優先させるためメニューを開かない
+    if (tabId !== activeTabId) return;
+
     if (touchTimerRef.current) {
       clearTimeout(touchTimerRef.current);
     }
