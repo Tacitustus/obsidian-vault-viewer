@@ -7,7 +7,7 @@
 @tailwind utilities;
 
 @layer base {
-  /* デフォルトのフォント設定 */
+  /* デフォルトのフォント設定 + オーバースクロール防止 */
   html {
     font-family:
       'Inter',
@@ -16,6 +16,9 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    /* モバイルでのピンチズーム縮小時に pull-to-refresh が発動するのを防止 */
+    overscroll-behavior: none;
   }
 
   /* スムーズスクロール */
@@ -23,9 +26,15 @@
     scroll-behavior: smooth;
   }
 
-  /* ダークモード時の背景色トランジション */
+  /* ダークモード時の背景色トランジション + オーバースクロール防止 */
   body {
     @apply transition-colors duration-300;
+
+    /* ブラウザのナビゲーション用オーバースクロール（pull-to-refresh 等）を無効化 */
+    overscroll-behavior: none;
+
+    /* ダブルタップズームを無効化し、スクロール・ピンチズームは維持 */
+    touch-action: manipulation;
   }
 }
 
