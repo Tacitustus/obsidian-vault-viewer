@@ -49,6 +49,9 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          # Pages が未設定の場合でも自動的に有効化する（private↔public 切り替え時の設定リセット対策）
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
