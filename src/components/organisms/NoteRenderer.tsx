@@ -12,7 +12,7 @@
  * ```
  */
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -22,7 +22,7 @@ import { remarkObsidianLink } from '@/lib/remark/remarkObsidianLink';
 import { useWikilinkResolver } from '@/hooks/useWikilinkResolver';
 import { useVaultStore } from '@/stores/vaultStore';
 import { useTabStore } from '@/stores/tabStore';
-import { buildRawImageUrl, fetchFileContent, buildBase64ImageUrl } from '@/lib/githubApi';
+import { buildRawImageUrl, fetchFileContent, buildBase64ImageUrl, fetchImageAsObjectUrl } from '@/lib/githubApi';
 import { NoteEmbed } from '@/components/organisms/NoteEmbed';
 
 import type { Components } from 'react-markdown';
@@ -346,10 +346,18 @@ const EmbedImage = ({
   resolveFilePath: (t: string) => string | undefined;
 }) => {
   const [imageSrc, setImageSrc] = useState<string>('');
+  // Object URL のクリーンアップ用 ref
+  const objectUrlRef = useRef<string | null>(null);
 
   // 画像URLを解決する
   useEffect(() => {
     if (!connection) return;
+
+    // 前回の Object URL を解放する
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
 
     const resolvedPath = resolveFilePath(target) ?? target;
 
@@ -357,17 +365,34 @@ const EmbedImage = ({
     if (connection.token) {
       void (async () => {
         try {
+          // Contents APIでbase64取得を試みる（1MB制限あり）
           const fileContent = await fetchFileContent(connection, resolvedPath);
           setImageSrc(buildBase64ImageUrl(fileContent));
         } catch {
-          // フォールバック: raw URL
-          setImageSrc(buildRawImageUrl(connection, resolvedPath));
+          try {
+            // フォールバック: 認証付きで raw URL から Blob として取得する
+            // Contents API の 1MB 制限を回避し、プライベートリポジトリの画像も表示可能にする
+            const objectUrl = await fetchImageAsObjectUrl(connection, resolvedPath);
+            objectUrlRef.current = objectUrl;
+            setImageSrc(objectUrl);
+          } catch {
+            // 最終フォールバック: raw URL をそのまま設定する
+            setImageSrc(buildRawImageUrl(connection, resolvedPath));
+          }
         }
       })();
     } else {
       // 公開リポジトリ: raw URL
       setImageSrc(buildRawImageUrl(connection, resolvedPath));
     }
+
+    // クリーンアップ: Object URL が生成された場合にメモリを解放する
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
   }, [target, connection, resolveFilePath]);
 
   if (!imageSrc) {
@@ -384,3 +409,4 @@ const EmbedImage = ({
     />
   );
 };
+

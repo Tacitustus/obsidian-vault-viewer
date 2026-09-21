@@ -144,6 +144,14 @@ const visitTextNodes = (node: Root | { children: (RootContent | PhrasingContent)
       const textNode = child;
       const parsed = parseWikilinksInText(textNode.value);
       newChildren.push(...parsed);
+    } else if (child.type === 'html') {
+      // HTML ブロックノードの場合、テキスト内容から wikilink/embed を検出する
+      // remark-parse は <div>...</div> 等の HTML ブロックを単一の html ノードとして扱うため、
+      // 内部の ![[...]] / [[...]] がテキストノードとして走査されない。
+      // ここで html ノードのテキストを解析し、wikilink/embed を含む場合はノードを分割する。
+      const htmlChild = child as { type: string; value: string };
+      const htmlParsed = parseWikilinksInHtmlNode(htmlChild.value);
+      newChildren.push(...htmlParsed);
     } else {
       // テキストノード以外は再帰的に処理する
       if ('children' in child && Array.isArray(child.children)) {
@@ -207,6 +215,69 @@ const parseWikilinksInText = (text: string): PhrasingContent[] => {
   // マッチがなかった場合はテキストノードをそのまま返す
   if (nodes.length === 0) {
     nodes.push({ type: 'text', value: text });
+  }
+
+  return nodes;
+};
+
+/**
+ * @description HTML ノード内の wikilink/embed パターンを検出し、ノード配列に変換する
+ *
+ * remark-parse は `<div>![[image.png]]</div>` のような HTML ブロックを
+ * 単一の `html` ノードとして扱うため、内部の `![[...]]` / `[[...]]` が
+ * テキストノードとして走査されない。
+ *
+ * この関数は html ノードのテキストを解析し、wikilink/embed を含む場合は
+ * html 部分とカスタムノードに分割する。
+ *
+ * @param {string} htmlText - HTML ノードのテキスト内容
+ * @returns {(RootContent | PhrasingContent)[]} 変換後のノード配列
+ */
+const parseWikilinksInHtmlNode = (htmlText: string): (RootContent | PhrasingContent)[] => {
+  const nodes: (RootContent | PhrasingContent)[] = [];
+  let lastIndex = 0;
+
+  // 正規表現のグローバルフラグをリセットする
+  WIKILINK_REGEX.lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  // HTML テキスト内の wikilink/embed パターンを検出する
+  while ((match = WIKILINK_REGEX.exec(htmlText)) !== null) {
+    // マッチ前の HTML テキストを html ノードとして追加する
+    if (match.index > lastIndex) {
+      nodes.push({
+        type: 'html',
+        value: htmlText.slice(lastIndex, match.index),
+      });
+    }
+
+    // マッチした部分を解析する
+    const [, prefix, target, heading, pipeValue] = match;
+    const isEmbed = prefix === '![[';
+    const trimmedTarget = target.trim();
+
+    if (isEmbed) {
+      // embed ノードを生成する
+      nodes.push(createEmbedNode(trimmedTarget, heading?.trim(), pipeValue?.trim()));
+    } else {
+      // wikilink ノードを生成する
+      nodes.push(createWikilinkNode(trimmedTarget, heading?.trim(), pipeValue?.trim()));
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // 残りの HTML テキストを追加する
+  if (lastIndex < htmlText.length) {
+    nodes.push({
+      type: 'html',
+      value: htmlText.slice(lastIndex),
+    });
+  }
+
+  // マッチがなかった場合は html ノードをそのまま返す
+  if (nodes.length === 0) {
+    nodes.push({ type: 'html', value: htmlText });
   }
 
   return nodes;

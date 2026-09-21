@@ -151,7 +151,12 @@ export const fetchFileContent = async (
   }
 
   // GitHub API にリクエストを送信する
-  const url = `${GITHUB_API_BASE}/repos/${connection.owner}/${connection.repo}/contents/${filePath}?ref=${connection.branch}`;
+  // ファイルパスの各セグメントを URL エンコードする（日本語ファイル名対応）
+  const encodedPath = filePath
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+  const url = `${GITHUB_API_BASE}/repos/${connection.owner}/${connection.repo}/contents/${encodedPath}?ref=${connection.branch}`;
 
   let response: Response;
   try {
@@ -211,7 +216,12 @@ export const decodeBase64Content = (base64Content: string): string => {
  * @returns {string} 画像の表示用URL（公開リポジトリの場合）
  */
 export const buildRawImageUrl = (connection: VaultConnection, filePath: string): string => {
-  return `https://raw.githubusercontent.com/${connection.owner}/${connection.repo}/${connection.branch}/${filePath}`;
+  // ファイルパスの各セグメントを URL エンコードする（日本語ファイル名対応）
+  const encodedPath = filePath
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+  return `https://raw.githubusercontent.com/${connection.owner}/${connection.repo}/${connection.branch}/${encodedPath}`;
 };
 
 /**
@@ -239,4 +249,38 @@ export const buildBase64ImageUrl = (fileContent: GitHubFileContent): string => {
   // base64 内の改行を除去して data: URL を構築する
   const cleanedContent = fileContent.content.replace(/\n/g, '');
   return `data:${mimeType};base64,${cleanedContent}`;
+};
+
+/**
+ * @description 認証付きで画像ファイルを取得し、Object URL を返す
+ *
+ * GitHub Contents API には 1MB のファイルサイズ制限があるため、
+ * 大きな画像ファイルでは `fetchFileContent` が失敗する。
+ * この関数は raw.githubusercontent.com に認証ヘッダー付きでリクエストし、
+ * Blob → Object URL に変換することで、プライベートリポジトリの
+ * 1MB 超画像も表示可能にする。
+ *
+ * @param {VaultConnection} connection - vault 接続情報
+ * @param {string} filePath - ファイルパス
+ * @returns {Promise<string>} Object URL
+ * @throws {Error} 取得失敗時
+ */
+export const fetchImageAsObjectUrl = async (
+  connection: VaultConnection,
+  filePath: string,
+): Promise<string> => {
+  // raw.githubusercontent.com に認証ヘッダー付きでリクエストする
+  const rawUrl = buildRawImageUrl(connection, filePath);
+
+  const response = await fetch(rawUrl, {
+    headers: connection.token ? { Authorization: `Bearer ${connection.token}` } : {},
+  });
+
+  if (!response.ok) {
+    throw new Error(`画像の取得に失敗しました（ステータス: ${String(response.status)}）`);
+  }
+
+  // レスポンスを Blob に変換し、Object URL を生成する
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 };
